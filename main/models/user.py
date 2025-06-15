@@ -1,0 +1,32 @@
+from sqlalchemy import (
+    Boolean,
+    Column,
+    DateTime,
+    Text,
+    Float,
+    Integer
+)
+from sqlalchemy.dialects.postgresql import UUID
+
+from main.db.dbpostgres.baseclass import Base
+
+class UserRole(Base):
+    __tablename__ = "UserRoles"
+    type = Column(Text, primary_key=True, index=True)
+    description = Column(Text)
+
+class User(Base):
+    __tablename__ = "Users"
+    user_id = Column(Text, primary_key=True, index=True)
+    user_type = Column(Text, nullable=False, index=True)
+    name = Column(Text, nullable=False)
+    email = Column(Text, nullable=False, unique=True)
+    password = Column(Text, nullable=False)
+    mobile_no = Column(Text, nullable=False, unique=True)
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime, index=True)
+    updated_at = Column(DateTime, index=True)
+    last_login = Column(DateTime, index=True)
+    deleted_at = Column(DateTime, index=True)
+
+    

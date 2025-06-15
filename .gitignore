@@ -1,0 +1,4 @@
+.env
+*.pyc
+*.ccpython-39.pyc
+__pycache__/

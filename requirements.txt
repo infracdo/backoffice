@@ -1,0 +1,12 @@
+fastapi
+uvicorn
+gunicorn
+sqlalchemy
+psycopg2-binary
+git+https://github.com/tontech/superlibrary.git@main
+pydantic
+pydantic-settings
+pydantic[email]
+PyJWT
+bcrypt
+mandrill
