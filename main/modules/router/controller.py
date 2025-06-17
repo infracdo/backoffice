@@ -3,7 +3,7 @@ from fastapi.encoders import jsonable_encoder
 from sqlalchemy.orm import Session
 from main import models
 from main.library.common import common
-from main.schemas.common import PostResponse, GetResponse
+from main.schemas.common import PostResponse, GetResponse, GetResponseWithDataUsage
 from main.core.config import Settings
 
 settings = Settings()
@@ -99,7 +99,8 @@ class RouterController:
     def router_list(
         self,
         db: Session,
-        payload: dict
+        payload: dict,
+        with_data_usage: bool
     ):
         limit = payload.get("limit",9999999)
         page = payload.get("page",1)
@@ -112,6 +113,10 @@ class RouterController:
         # get total rows count
         data = db.query(models.Router).filter(*filters)
         total_rows = data.count()
+        # get total data usage
+        total_data_usage = 0
+        if with_data_usage:
+            total_data_usage = sum((r.data_usage or 0) for r in data)
 
         limit = int(limit) if limit else 0
         page = int(page) if page else 0
@@ -128,14 +133,22 @@ class RouterController:
             .all()
         )
 
-        return GetResponse(
-            status="ok",
-            status_code=200,
-            data=jsonable_encoder(routers),
-            total_rows=total_rows
-        ).__dict__
-
-
+        if with_data_usage:
+            return GetResponseWithDataUsage(
+                status="ok",
+                status_code=200,
+                data=jsonable_encoder(routers),
+                total_rows=total_rows,
+                total_data_usage=total_data_usage
+            ).__dict__
+        else:
+            return GetResponse(
+                status="ok",
+                status_code=200,
+                data=jsonable_encoder(routers),
+                total_rows=total_rows
+            ).__dict__
+            
     def delete_router(
         self,
         db: Session,

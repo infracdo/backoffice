@@ -5,7 +5,7 @@ from main.schemas.common import GetPayload
 from main.core.security import jwt_required
 from sqlalchemy.orm import Session
 from fastapi import APIRouter, Depends, Header
-from typing import Any, Union, Optional
+from typing import Any, Union, Optional, Annotated
 
 
 router = APIRouter()
@@ -13,9 +13,9 @@ controller = UserController()
 
 @router.get('/types')
 async def user_types(
-    db: Session = Depends(deps.get_db),
+    db: Annotated[Session, Depends(deps.get_db)],
     *,
-    _: dict = Depends(jwt_required),
+    _: Annotated[dict, Depends(jwt_required)],
     payload: GetPayload = Depends(),
 ) -> Any:
 
@@ -29,7 +29,7 @@ async def user_types(
 
 @router.post("/create",response_model=dict)
 async def create_user(
-    db: Session = Depends(deps.get_db),
+    db: Annotated[Session, Depends(deps.get_db)],
     *,
     payload: CreateUser
 ) -> Any:
@@ -43,9 +43,9 @@ async def create_user(
 
 @router.put("/update",response_model=dict)
 async def update_user(
-    db: Session = Depends(deps.get_db),
+    db: Annotated[Session, Depends(deps.get_db)],
     *,
-    _: dict = Depends(jwt_required),
+    _: Annotated[dict, Depends(jwt_required)],
     payload: UpdateUser
 ) -> Any:
     """
@@ -58,9 +58,9 @@ async def update_user(
 
 @router.get('/list')
 async def user_list(
-    db: Session = Depends(deps.get_db),
+    db: Annotated[Session, Depends(deps.get_db)],
     *,
-    _: dict = Depends(jwt_required),
+    _: Annotated[dict, Depends(jwt_required)],
     payload: GetPayload = Depends(),
 ) -> Any:
 
@@ -75,9 +75,9 @@ async def user_list(
 
 @router.delete('/delete')
 async def delete_user(
-    db: Session = Depends(deps.get_db),
+    db: Annotated[Session, Depends(deps.get_db)],
     *,
-    _: dict = Depends(jwt_required),
+    _: Annotated[dict, Depends(jwt_required)],
     id: str,
 ) -> Any:
 

@@ -4,7 +4,7 @@ from main.schemas.auth import Signin, ForgotPassword, ChangePassword
 from main.core.security import jwt_required
 from sqlalchemy.orm import Session
 from fastapi import APIRouter, Depends, Header
-from typing import Any, Union
+from typing import Any, Union, Annotated
 
 
 router = APIRouter()
@@ -12,7 +12,7 @@ controller = AuthController()
 
 @router.post("/signin",response_model=dict)
 async def signin(
-    db: Session = Depends(deps.get_db),
+    db: Annotated[Session, Depends(deps.get_db)],
     *,
     payload: Signin
 ) -> Any:
@@ -26,7 +26,7 @@ async def signin(
 
 @router.put("/forgot-password",response_model=dict)
 async def forgot_password(
-    db: Session = Depends(deps.get_db),
+    db: Annotated[Session, Depends(deps.get_db)],
     *,
     payload: ForgotPassword
 ) -> Any:
@@ -40,9 +40,9 @@ async def forgot_password(
 
 @router.put("/change-password",response_model=dict)
 async def change_password(
-    db: Session = Depends(deps.get_db),
+    db: Annotated[Session, Depends(deps.get_db)],
     *,
-    current_user: dict = Depends(jwt_required),
+    current_user: Annotated[dict, Depends(jwt_required)],
     payload: ChangePassword
 ) -> Any:
     """

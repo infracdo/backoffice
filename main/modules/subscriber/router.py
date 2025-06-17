@@ -5,7 +5,7 @@ from main.schemas.common import GetPayload
 from main.core.security import jwt_required
 from sqlalchemy.orm import Session
 from fastapi import APIRouter, Depends, Header
-from typing import Any, Union, Optional
+from typing import Any, Union, Optional, Annotated
 
 
 router = APIRouter()
@@ -13,9 +13,9 @@ controller = SubscriberController()
 
 @router.post("/create",response_model=dict)
 async def create_subscriber(
-    db: Session = Depends(deps.get_db),
+    db: Annotated[Session, Depends(deps.get_db)],
     *,
-    current_user: dict = Depends(jwt_required),
+    current_user: Annotated[dict, Depends(jwt_required)],
     payload: CreateSubscriber
 ) -> Any:
     """
@@ -29,9 +29,9 @@ async def create_subscriber(
 
 @router.put("/update",response_model=dict)
 async def update_subscriber(
-    db: Session = Depends(deps.get_db),
+    db: Annotated[Session, Depends(deps.get_db)],
     *,
-    _: dict = Depends(jwt_required),
+    _: Annotated[dict, Depends(jwt_required)],
     payload: UpdateSubscriber
 ) -> Any:
     """
@@ -44,9 +44,9 @@ async def update_subscriber(
 
 @router.get('/list')
 async def subscriber_list(
-    db: Session = Depends(deps.get_db),
+    db: Annotated[Session, Depends(deps.get_db)],
     *,
-    _: dict = Depends(jwt_required),
+    _: Annotated[dict, Depends(jwt_required)],
     payload: GetPayload = Depends(),
 ) -> Any:
 
@@ -60,9 +60,9 @@ async def subscriber_list(
 
 @router.get('/list/by-router-owner')
 async def subscriber_list_by_router_owner(
-    db: Session = Depends(deps.get_db),
+    db: Annotated[Session, Depends(deps.get_db)],
     *,
-    _: dict = Depends(jwt_required),
+    _: Annotated[dict, Depends(jwt_required)],
     payload: GetByOwner = Depends(),
 ) -> Any:
 
@@ -76,9 +76,9 @@ async def subscriber_list_by_router_owner(
 
 @router.delete('/delete')
 async def delete_subscriber(
-    db: Session = Depends(deps.get_db),
+    db: Annotated[Session, Depends(deps.get_db)],
     *,
-    _: dict = Depends(jwt_required),
+    _: Annotated[dict, Depends(jwt_required)],
     id: str,
 ) -> Any:
 
