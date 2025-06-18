@@ -42,12 +42,160 @@ class UserController:
         )
     
 
+    def subscriber_tiers(
+        self,
+        db: Session,
+        payload: dict
+    ):
+        filters = [
+            models.Tier.deleted_at == None
+        ]
+        limit = payload.get("limit",9999999)
+        page = payload.get("page",1)
+        if payload.get("id"):
+            filters.append(models.Tier.tier_id == payload.get("id"))
+
+        # get total rows count
+        data = db.query(models.Tier).filter(*filters)
+        total_rows = data.count()
+
+        limit = int(limit) if limit else 0
+        page = int(page) if page else 0
+        offset = (page - 1) * limit if limit and page else None
+
+        tiers = (
+            db.query(
+                models.Tier
+            )
+            .filter(*filters)
+            .order_by(models.Tier.updated_at.desc())
+            .limit(limit)
+            .offset(offset)
+            .all()
+        )
+
+        return GetResponse(
+            status="ok",
+            status_code=200,
+            data=jsonable_encoder(tiers),
+            total_rows=total_rows
+        ).__dict__
+    
+    
+    def create_subscriber_tier(
+        self,
+        db: Session,
+        payload: dict
+    ):
+
+        time_now = common.get_timestamp(1)
+        new_tier = models.Tier(
+            name=payload["name"],
+            description=payload["description"],
+            data_limit=payload["data_limit"],
+            tier_id=common.small_letter_no_space(payload["name"]),
+            created_at=time_now,
+            updated_at=time_now
+        )
+        db.add(new_tier)
+        db.commit()
+        db.refresh(new_tier)
+
+        return PostResponse(
+            status="ok",
+            status_code=200,
+            message="Tier created successfully",
+            data={
+                "tier": jsonable_encoder(new_tier)
+            }
+        ).__dict__
+
+
+    def update_subscriber_tier(
+        self,
+        db: Session,
+        payload: dict
+    ):
+
+        tier = (
+            db.query(models.Tier)
+            .filter_by(tier_id=payload["tier_id"])
+            .one_or_none()
+        )
+        if not tier:
+            return PostResponse(
+                status="error",
+                status_code=400,
+                message="Tier not found"
+            ).__dict__
+        
+
+        tier_data = jsonable_encoder(tier)
+        if isinstance(payload, dict):
+            update_data = payload
+        else:
+            update_data = payload.dict(exclude_unset=True)
+        update_data["updated_at"] = common.get_timestamp(1)
+        for field in tier_data:
+            if field in update_data:
+                setattr(tier, field, update_data[field])
+        
+        db.commit()
+        db.refresh(tier)
+
+        return PostResponse(
+            status="ok",
+            status_code=200,
+            message="Tier successfully updated",
+            data={
+                "tier": jsonable_encoder(tier)
+            }
+        ).__dict__
+
+
+    def delete_subscriber_tier(
+        self,
+        db: Session,
+        id: str
+    ):
+
+        if id == "tier1":
+            return PostResponse(
+                status="error",
+                status_code=400,
+                message="Tier cannot be deleted"
+            ).__dict__
+
+        tier = (
+            db.query(models.Tier)
+            .filter_by(tier_id=id)
+            .one_or_none()
+        )
+        if not tier:
+            return PostResponse(
+                status="error",
+                status_code=400,
+                message="Tier not found"
+            ).__dict__
+    
+        tier.deleted_at= common.get_timestamp(1)
+        db.commit()
+
+        return PostResponse(
+            status="ok",
+            status_code=200,
+            message="Tier successfully deleted"
+        ).__dict__
+   
+   
     def create_user(
         self,
         db: Session,
         payload: dict
     ):
 
+        is_subscriber = payload["user_type"] == "subscriber"
+        new_subscriber_tier = "tier1"
         existing_email = (
             db.query(models.User)
             .filter(models.User.email == payload["email"]).first()
@@ -69,18 +217,40 @@ class UserController:
                 message="Mobile number already registered"
             ).__dict__
 
+        roles = db.query(models.UserRole).all()
+        role_names = [r.type for r in roles]
+
+        if not (payload["user_type"] in role_names):
+            return PostResponse(
+                status="error",
+                status_code=400,
+                message="Invalid user_type"
+            ).__dict__
+
+        data_limit = None
+        if is_subscriber:
+            tier_data = (
+                db.query(models.Tier)
+                .filter(models.Tier.tier_id == new_subscriber_tier).first()
+            )
+            data_limit = tier_data.data_limit if tier_data else 51200
+
+
         time_now = common.get_timestamp(1)
         new_user = models.User(
             name=payload["name"],
             email=payload["email"],
             mobile_no=payload["mobile_no"],
             user_type=payload["user_type"],
-            is_active=payload["is_active"],
+            device_id=payload.get("device_id"),
+            data_limit=data_limit,
+            tier=new_subscriber_tier if is_subscriber else None,
+            is_active=payload.get("is_active", True),
             password=common.generate_hashed_password(
                 password_str=payload["password"]
             ),
             user_id=common.uuid_generator(),
-            last_login=time_now if payload["will_return_token"] else None,
+            last_login=time_now if payload.get("will_return_token") else None,
             created_at=time_now,
             updated_at=time_now
         )
@@ -93,10 +263,10 @@ class UserController:
         }
         message = "User created successfully"
 
-        if payload["will_return_token"]:
+        if payload.get("will_return_token"):
             token = common.generate_jwt(jsonable_encoder(new_user))
             data["access_token"] = token
-            message = "Login successful"
+            message = "Signup successful"
 
         return PostResponse(
             status="ok",

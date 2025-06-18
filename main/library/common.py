@@ -324,5 +324,8 @@ class Common:
         otp = su[:6]
         return otp
 
+    def small_letter_no_space(self, orig: str):
+        return re.sub(r"\s+", "", orig.lower())
+
 
 common = Common()

@@ -1,3 +1,2 @@
-from .user import User, UserRole
+from .user import User, UserRole, Tier
 from .router import Router
-from .subscriber import Subscriber

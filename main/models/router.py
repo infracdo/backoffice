@@ -22,7 +22,6 @@ class Router(Base):
     long = Column(Float)
     lat = Column(Float)
     is_active = Column(Boolean)
-    router_config = Column(Text)
     created_at = Column(DateTime, index=True)
     updated_at = Column(DateTime, index=True)
     deleted_at = Column(DateTime, index=True)

@@ -1,6 +1,7 @@
 from main.core import deps
 from main.modules.user.controller import UserController
-from main.schemas.user import CreateUser, UpdateUser
+from main.schemas.user import CreateUser, UpdateUser, \
+    CreateTier, UpdateTier
 from main.schemas.common import GetPayload
 from main.core.security import jwt_required
 from sqlalchemy.orm import Session
@@ -27,10 +28,73 @@ async def user_types(
         payload=payload.dict(exclude_none=True)
     )
 
+@router.get('/tiers')
+async def subscriber_tiers(
+    db: Annotated[Session, Depends(deps.get_db)],
+    *,
+    _: Annotated[dict, Depends(jwt_required)],
+    payload: GetPayload = Depends(),
+) -> Any:
+
+    """
+    Get Subscriber Tiers
+    """
+    return controller.subscriber_tiers(
+        db=db,
+        payload=payload.dict(exclude_none=True)
+    )
+
+@router.post("/tier/create",response_model=dict)
+async def create_subscriber_tier(
+    db: Annotated[Session, Depends(deps.get_db)],
+    *,
+    _: Annotated[dict, Depends(jwt_required)],
+    payload: CreateTier
+) -> Any:
+    """
+        Create Subscriber Tier
+    """
+    return controller.create_subscriber_tier(
+        db=db,
+        payload=payload.dict(exclude_unset=True)
+    )
+
+@router.put("/tier/update",response_model=dict)
+async def update_subscriber_tier(
+    db: Annotated[Session, Depends(deps.get_db)],
+    *,
+    _: Annotated[dict, Depends(jwt_required)],
+    payload: UpdateTier
+) -> Any:
+    """
+        Update Subscriber Tier
+    """
+    return controller.update_subscriber_tier(
+        db=db,
+        payload=payload.dict(exclude_unset=True)
+    )
+
+@router.delete('/tier/delete')
+async def delete_subscriber_tier(
+    db: Annotated[Session, Depends(deps.get_db)],
+    *,
+    _: Annotated[dict, Depends(jwt_required)],
+    id: str,
+) -> Any:
+
+    """
+    Delete Subscriber Tier
+    """
+    return controller.delete_subscriber_tier(
+        db=db,
+        id=id
+    )
+
 @router.post("/create",response_model=dict)
 async def create_user(
     db: Annotated[Session, Depends(deps.get_db)],
     *,
+    _: Annotated[dict, Depends(jwt_required)],
     payload: CreateUser
 ) -> Any:
     """

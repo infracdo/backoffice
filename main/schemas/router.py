@@ -19,4 +19,3 @@ class UpdateRouter(BaseModel):
     long: Optional[float] = None
     lat: Optional[float] = None
     is_active: Optional [bool] = None
-    router_config: Optional[str] = None

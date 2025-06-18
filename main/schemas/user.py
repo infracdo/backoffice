@@ -10,6 +10,7 @@ class UserBase(BaseModel):
 
 class CreateUser(UserBase):
     password: str  # required on creation
+    device_id: Optional[str] = None
     will_return_token: bool = False
 
 class UpdateUser(BaseModel):
@@ -19,4 +20,18 @@ class UpdateUser(BaseModel):
     email: Optional[EmailStr] = None
     user_type: Optional[str] = None
     is_active: Optional[bool] = None
+    device_id: Optional[str] = None
+    data_limit: Optional[float] = None
+    data_usage: Optional[float] = None
+    tier: Optional[str] = None
 
+class CreateTier(BaseModel):
+    name: str
+    description: Optional[str] = None
+    data_limit: float
+
+class UpdateTier(BaseModel):
+    tier_id: str
+    name: Optional[str] = None
+    description: Optional[str] = None
+    data_limit: Optional[float] = None

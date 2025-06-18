@@ -3,7 +3,7 @@ from fastapi import APIRouter
 from main.modules.auth import router as auth_router
 from main.modules.user import router as user_router
 from main.modules.router import router as router_router
-from main.modules.subscriber import router as subscriber_router
+from main.modules.dashboard import router as dashboard_router
 
 api_router = APIRouter()
 
@@ -26,7 +26,7 @@ api_router.include_router(
 )
 
 api_router.include_router(
-    subscriber_router.router,
-    prefix="/subscriber",
-    tags=["Subscriber Module"]
+    dashboard_router.router,
+    prefix="/dashboard",
+    tags=["Dashboard Module"]
 )

@@ -149,6 +149,7 @@ class RouterController:
                 total_rows=total_rows
             ).__dict__
             
+    
     def delete_router(
         self,
         db: Session,
