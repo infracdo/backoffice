@@ -4,7 +4,7 @@ from main import models
 from main.library.common import common
 from main.schemas.common import OTPResponse, PostResponse, GetResponse
 from main.core.config import Settings
-from twilio.rest import Client
+# from twilio.rest import Client
 import requests
 from urllib.parse import urlencode
 
