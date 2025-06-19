@@ -21,6 +21,7 @@ class Tier(Base):
     name = Column(Text)
     description = Column(Text)
     data_limit = Column(Float)
+    is_default_tier = Column(Boolean)
     created_at = Column(DateTime, index=True)
     updated_at = Column(DateTime, index=True)
     deleted_at = Column(DateTime, index=True)

@@ -29,9 +29,11 @@ class CreateTier(BaseModel):
     name: str
     description: Optional[str] = None
     data_limit: float
+    is_default_tier: bool = False
 
 class UpdateTier(BaseModel):
     tier_id: str
     name: Optional[str] = None
     description: Optional[str] = None
     data_limit: Optional[float] = None
+    is_default_tier: Optional[bool] = None

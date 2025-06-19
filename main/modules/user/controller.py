@@ -195,7 +195,8 @@ class UserController:
     ):
 
         is_subscriber = payload["user_type"] == "subscriber"
-        new_subscriber_tier = "tier1"
+        new_subscriber_tier = None
+        data_limit = None
         existing_email = (
             db.query(models.User)
             .filter(models.User.email == payload["email"]).first()
@@ -227,13 +228,13 @@ class UserController:
                 message="Invalid user_type"
             ).__dict__
 
-        data_limit = None
         if is_subscriber:
             tier_data = (
                 db.query(models.Tier)
-                .filter(models.Tier.tier_id == new_subscriber_tier).first()
+                .filter(models.Tier.is_default_tier == True).first()
             )
             data_limit = tier_data.data_limit if tier_data else 51200
+            new_subscriber_tier = tier_data.tier_id if tier_data else None
 
 
         time_now = common.get_timestamp(1)
