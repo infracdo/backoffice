@@ -5,6 +5,7 @@ import io
 import itertools
 import jwt
 import bcrypt
+import random
 from sqlalchemy.orm import Query, Session
 from sqlalchemy import desc, case, func, DECIMAL
 from datetime import datetime, date, timedelta as td
@@ -323,6 +324,18 @@ class Common:
         su = self.uuid_with_dash()
         otp = su[:6]
         return otp
+
+    def generate_mobile_otp(self):
+        return str(random.randint(100000, 999999))
+
+    def normalize_ph_number(self, phone: str):
+        phone = phone.strip()
+        if phone.startswith("09"):
+            return "+63" + phone[1:]
+        elif phone.startswith("+63"):
+            return phone
+        else:
+            return None
 
     def small_letter_no_space(self, orig: str):
         return re.sub(r"\s+", "", orig.lower())

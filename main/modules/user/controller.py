@@ -1,11 +1,9 @@
+import random
 from fastapi.encoders import jsonable_encoder
 from sqlalchemy.orm import Session
 from main import models
 from main.library.common import common
 from main.schemas.common import PostResponse, GetResponse
-from main.core.config import Settings
-
-settings = Settings()
 
 class UserController:
 
@@ -17,8 +15,14 @@ class UserController:
         limit = payload.get("limit",9999999)
         page = payload.get("page",1)
 
+        filters = [
+            models.UserRole.deleted_at == None
+        ]
+        if payload.get("id"):
+            filters.append(models.UserRole.type == payload.get("id"))
+
         # get total rows count
-        data = db.query(models.UserRole)
+        data = db.query(models.UserRole).filter(*filters)
         total_rows = data.count()
 
         limit = int(limit) if limit else 0
@@ -29,6 +33,7 @@ class UserController:
             db.query(
                 models.UserRole
             )
+            .filter(*filters)
             .limit(limit)
             .offset(offset)
             .all()
