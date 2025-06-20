@@ -10,10 +10,11 @@ from typing import Any, Union, Annotated
 router = APIRouter()
 controller = AuthController()
 
-@router.post("/signin",response_model=dict)
+@router.post("/signin")
 async def signin(
     db: Annotated[Session, Depends(deps.get_db)],
     *,
+    _: Annotated[dict, Depends(jwt_required)],
     payload: Signin
 ) -> Any:
     """
@@ -24,10 +25,11 @@ async def signin(
         credentials=payload.dict(exclude_unset=True)
     )
 
-@router.put("/forgot-password",response_model=dict)
+@router.put("/forgot-password")
 async def forgot_password(
     db: Annotated[Session, Depends(deps.get_db)],
     *,
+    _: Annotated[dict, Depends(jwt_required)],
     payload: ForgotPassword
 ) -> Any:
     """
@@ -38,7 +40,7 @@ async def forgot_password(
         email=payload.email
     )
 
-@router.put("/change-password",response_model=dict)
+@router.put("/change-password")
 async def change_password(
     db: Annotated[Session, Depends(deps.get_db)],
     *,
