@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from main import models
 from main.library.common import common
 from main.schemas.common import PostResponse, GetResponse
+from typing import Optional
 
 class UserController:
 
@@ -327,11 +328,16 @@ class UserController:
     def user_list(
         self,
         db: Session,
-        payload: dict
+        payload: dict,
+        user_types: Optional[str] = None
     ):
         filters = [
             models.User.deleted_at == None
         ]
+        if user_types:
+            user_type_list = [t.strip() for t in user_types.split(",") if t.strip()]
+            if user_type_list:
+                filters.append(models.User.user_type.in_(user_type_list))
         limit = payload.get("limit",9999999)
         page = payload.get("page",1)
         if payload.get("id"):

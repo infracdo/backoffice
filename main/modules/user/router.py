@@ -5,7 +5,7 @@ from main.schemas.user import CreateUser, UpdateUser, \
 from main.schemas.common import GetPayload
 from main.core.security import jwt_required
 from sqlalchemy.orm import Session
-from fastapi import APIRouter, Depends, Header
+from fastapi import APIRouter, Depends, Header, Query
 from typing import Any, Union, Optional, Annotated
 
 
@@ -126,6 +126,7 @@ async def user_list(
     *,
     _: Annotated[dict, Depends(jwt_required)],
     payload: GetPayload = Depends(),
+    user_types: Annotated[str, Query()] = None
 ) -> Any:
 
     """
@@ -134,7 +135,8 @@ async def user_list(
     print(payload.limit, payload.page, payload.id)
     return controller.user_list(
         db=db,
-        payload=payload.dict(exclude_none=True)
+        payload=payload.dict(exclude_none=True),
+        user_types=user_types
     )
 
 @router.delete('/delete')
