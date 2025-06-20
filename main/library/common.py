@@ -320,13 +320,13 @@ class Common:
             bcrypt.gensalt()
         ).decode("utf-8")
 
-    def generate_otp(self):
+    def generate_ref_id(self):
         su = self.uuid_with_dash()
         otp = su[:6]
         return otp
 
     def generate_mobile_otp(self):
-        return str(random.randint(100000, 999999))
+        return str(random.randint(1000, 9999))
 
     def normalize_ph_number(self, phone: str):
         phone = phone.strip()

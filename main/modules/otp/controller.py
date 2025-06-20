@@ -31,14 +31,14 @@ class OtpController:
                 message="Invalid Philippine number format.",
             ).__dict__
 
-        otp = common.generate_mobile_otp() 
-        message_body = f"Your Zeep OTP code is: {otp}"
-
+        # otp = common.generate_mobile_otp() 
+        # message_body = f"Your Zeep OTP code is: {otp}"
+        otp = "1234"
         try:
 
             # result = self.send_twilio_sms(payload["mobile_no"], message_body)
             # result = self.send_semaphore_sms(payload["mobile_no"], message_body)
-            ref_id  = common.generate_otp() # sample ref
+            ref_id  = common.generate_ref_id() # sample ref
             time_now = common.get_timestamp(1)
             new_otp = models.MobileOtp(
                 otp=otp,
