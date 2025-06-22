@@ -18,4 +18,4 @@ class UpdateRouter(BaseModel):
     subscribers_count: Optional[int] = None
     long: Optional[float] = None
     lat: Optional[float] = None
-    is_active: Optional [bool] = None
+    is_enabled: Optional [bool] = None

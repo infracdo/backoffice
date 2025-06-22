@@ -1,9 +1,11 @@
 from fastapi.encoders import jsonable_encoder
 from sqlalchemy.orm import Session
+from sqlalchemy import or_, cast, String
 from main import models
 from main.library.common import common
 from main.schemas.common import OTPResponse, PostResponse, GetResponse
 from main.core.config import Settings
+from typing import Optional
 # from twilio.rest import Client
 import requests
 from urllib.parse import urlencode
@@ -71,7 +73,8 @@ class OtpController:
     def sent_otp_list(
         self,
         db: Session,
-        payload: dict
+        payload: dict,
+        search: Optional[str] = None
     ):
         limit = payload.get("limit",9999999)
         page = payload.get("page",1)
@@ -79,6 +82,17 @@ class OtpController:
         filters = []
         if payload.get("id"):
             filters.append(models.MobileOtp.otp_id == payload.get("id"))
+        
+        if search: 
+            filters.append(
+                or_(
+                    models.MobileOtp.otp.ilike(f"%{search}%"),
+                    models.MobileOtp.mobile_no.ilike(f"%{search}%"),
+                    models.MobileOtp.device_id.ilike(f"%{search}%"),
+                    models.MobileOtp.ref_id.ilike(f"%{search}%"),
+                    cast(models.MobileOtp.created_at, String).ilike(search)
+                )
+            )
 
         # get total rows count
         data = db.query(models.MobileOtp).filter(*filters)
@@ -103,6 +117,61 @@ class OtpController:
             status_code=200,
             data=jsonable_encoder(otps),
             total_rows=total_rows
+        )
+
+    def download_otp_list(
+        self,
+        db: Session,
+        filename: str,
+        file_type: str,
+        search: Optional[str] = None
+    ):
+    
+        filters = []
+ 
+        if search: 
+            filters.append(
+                or_(
+                    models.MobileOtp.otp.ilike(f"%{search}%"),
+                    models.MobileOtp.mobile_no.ilike(f"%{search}%"),
+                    models.MobileOtp.device_id.ilike(f"%{search}%"),
+                    models.MobileOtp.ref_id.ilike(f"%{search}%"),
+                    cast(models.MobileOtp.created_at, String).ilike(search)
+                )
+            )
+
+        otps = (
+            db.query(
+                models.MobileOtp
+            )
+            .filter(*filters)
+            .all()
+        )
+        keys = (
+            "created_at",
+            "otp",
+            "mobile_no",
+            "device_id",
+            "ref_id"
+        )
+        headers = (
+            "Date",
+            "OTP",
+            "Mobile No",
+            "Device ID",
+            "Reference ID"
+        )
+
+        raw_data = {
+            "header": keys,
+            "headers": headers,
+            "rows": jsonable_encoder(otps)
+        }
+        data = common.format_excel(rawData=raw_data)
+        return common.get_media_return(
+            file_name=filename,
+            file_type=file_type,
+            data=data,
         )
 
 

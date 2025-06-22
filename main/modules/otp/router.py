@@ -3,7 +3,7 @@ from main.modules.otp.controller import OtpController
 from main.schemas.common import OTPRequest, GetPayload
 from main.core.security import jwt_required
 from sqlalchemy.orm import Session
-from fastapi import APIRouter, Depends, Header
+from fastapi import APIRouter, Depends, Header, Query
 from typing import Any, Union, Optional, Annotated
 
 
@@ -32,6 +32,7 @@ async def sent_otp_list(
     *,
     _: Annotated[dict, Depends(jwt_required)],
     payload: GetPayload = Depends(),
+    search: Annotated[str, Query()] = None
 ) -> Any:
 
     """
@@ -40,4 +41,26 @@ async def sent_otp_list(
     return controller.sent_otp_list(
         db=db,
         payload=payload.dict(exclude_none=True),
+        search=search
+    )
+
+@router.get('/list/download')
+async def download_otp_list(
+    db: Annotated[Session, Depends(deps.get_db)],
+    *,
+    _: Annotated[dict, Depends(jwt_required)],
+    filename: str,
+    file_type: str,
+    search: Annotated[str, Query()] = None,
+    
+) -> Any:
+
+    """
+    Download Sent OTP List
+    """
+    return controller.download_otp_list(
+        db=db,
+        filename=filename,
+        file_type=file_type,
+        search=search
     )

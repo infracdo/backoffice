@@ -13,9 +13,10 @@ from fastapi import Response
 from itertools import groupby
 from main.core.config import Settings
 from uuid import uuid4
-
+from openpyxl import Workbook
 
 settings = Settings()
+
 
 class Common:
 
@@ -159,6 +160,43 @@ class Common:
             csvData.append(",".join(row))
 
         return "\n".join(csvData)
+
+    def format_excel(self, rawData, is_raw_file=0):
+        # FORMAT EXCEL
+        wb = Workbook()
+        ws = wb.active
+        if rawData.get("sheet_name"):
+            ws.title = rawData["sheet_name"]
+
+        header = rawData["header"]
+        headers = rawData["headers"] if rawData.get("headers") else ()
+        ws.append(tuple(headers if headers else header))
+        for x in rawData["rows"]:
+            row = [
+                x[h] if h in x and x[h] not in ["None"] else "" for h in header
+            ]
+            ws.append(tuple(row))
+
+        for d in rawData["sheets"] if rawData.get("sheets") else []:
+            _header = d["header"]
+            _headers = d["headers"] if d.get("headers") else ()
+            _ws = wb.create_sheet(d["sheet_name"])
+            _ws.append(tuple(_headers if _headers else _header))
+
+            for e in d["rows"]:
+                _row = [
+                    e[h] if h in e and e[h] not in ["None"] else ""
+                    for h in _header
+                ]
+                _ws.append(tuple(_row))
+
+        if is_raw_file:
+            wb.save("tmp.xlsx")
+        else:
+            output = io.BytesIO()
+            wb.save(output)
+            data = output.getvalue()
+            return data
 
     def get_media_return(self, file_name, file_type, data):
         # GET RETURN

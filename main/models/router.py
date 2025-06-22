@@ -21,7 +21,7 @@ class Router(Base):
     subscribers_count = Column(Integer, default=0)
     long = Column(Float)
     lat = Column(Float)
-    is_active = Column(Boolean)
+    is_enabled = Column(Boolean, default=True)
     created_at = Column(DateTime, index=True)
     updated_at = Column(DateTime, index=True)
     deleted_at = Column(DateTime, index=True)

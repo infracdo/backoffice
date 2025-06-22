@@ -1,6 +1,7 @@
 import random
 from fastapi.encoders import jsonable_encoder
 from sqlalchemy.orm import Session
+from sqlalchemy import or_, cast, String
 from main import models
 from main.library.common import common
 from main.schemas.common import PostResponse, GetResponse
@@ -51,7 +52,8 @@ class UserController:
     def subscriber_tiers(
         self,
         db: Session,
-        payload: dict
+        payload: dict,
+        search: Optional[str] = None
     ):
         filters = [
             models.Tier.deleted_at == None
@@ -60,6 +62,15 @@ class UserController:
         page = payload.get("page",1)
         if payload.get("id"):
             filters.append(models.Tier.tier_id == payload.get("id"))
+
+        if search: 
+            filters.append(
+                or_(
+                    models.Tier.name.ilike(f"%{search}%"),
+                    models.Tier.description.ilike(f"%{search}%"),
+                    cast(models.Tier.data_limit, String).ilike(search),
+                )
+            )
 
         # get total rows count
         data = db.query(models.Tier).filter(*filters)
@@ -86,6 +97,66 @@ class UserController:
             data=jsonable_encoder(tiers),
             total_rows=total_rows
         ).__dict__
+    
+    
+    def download_tier_list(
+        self,
+        db: Session,
+        filename: str,
+        file_type: str,
+        search: Optional[str] = None
+    ):
+        filters = [
+            models.Tier.deleted_at == None
+        ]
+        
+        if search: 
+            filters.append(
+                or_(
+                    models.Tier.name.ilike(f"%{search}%"),
+                    models.Tier.description.ilike(f"%{search}%"),
+                    cast(models.Tier.data_limit, String).ilike(search),
+                )
+            )
+
+        tiers = (
+            db.query(
+                models.Tier
+            )
+            .filter(*filters)
+            .order_by(models.Tier.updated_at.desc())
+            .all()
+        )
+
+
+        keys = (
+            "created_at",
+            "updated_at",
+            "name",
+            "description",
+            "data_limit",
+            "is_default_tier"
+        )
+        headers = (
+            "Date Created",
+            "Date Updated",
+            "Tier Name",
+            "Description",
+            "Data Limit",
+            "Default"
+        )
+
+        raw_data = {
+            "header": keys,
+            "headers": headers,
+            "rows": jsonable_encoder(tiers)
+        }
+        data = common.format_excel(rawData=raw_data)
+        return common.get_media_return(
+            file_name=filename,
+            file_type=file_type,
+            data=data,
+        )
     
     
     def create_subscriber_tier(
@@ -205,7 +276,10 @@ class UserController:
         data_limit = None
         existing_email = (
             db.query(models.User)
-            .filter(models.User.email == payload["email"]).first()
+            .filter(
+                models.User.deleted_at == None,
+                models.User.email == payload["email"]
+            ).first()
         )
         if existing_email:
             return PostResponse(
@@ -215,7 +289,10 @@ class UserController:
             ).__dict__
         existing_mobile = (
             db.query(models.User)
-            .filter(models.User.mobile_no == payload["mobile_no"]).first()
+            .filter(
+                models.User.deleted_at == None,
+                models.User.mobile_no == payload["mobile_no"]
+            ).first()
         )
         if existing_mobile:
             return PostResponse(
@@ -329,7 +406,8 @@ class UserController:
         self,
         db: Session,
         payload: dict,
-        user_types: Optional[str] = None
+        user_types: Optional[str] = None,
+        search: Optional[str] = None,
     ):
         filters = [
             models.User.deleted_at == None
@@ -338,6 +416,15 @@ class UserController:
             user_type_list = [t.strip() for t in user_types.split(",") if t.strip()]
             if user_type_list:
                 filters.append(models.User.user_type.in_(user_type_list))
+        if search: 
+            filters.append(
+                or_(
+                    models.User.name.ilike(f"%{search}%"),
+                    models.User.email.ilike(f"%{search}%"),
+                    models.User.mobile_no.ilike(f"%{search}%"),
+                    models.User.user_type.ilike(f"%{search}%"),
+                )
+            )
         limit = payload.get("limit",9999999)
         page = payload.get("page",1)
         if payload.get("id"):
@@ -370,6 +457,79 @@ class UserController:
         ).__dict__
 
 
+    def download_user_list(
+        self,
+        db: Session,
+        filename: str,
+        file_type: str,
+        user_id: Optional[str] = None,
+        user_types: Optional[str] = None,
+        search: Optional[str] = None
+    ):
+        filters = [
+            models.User.deleted_at == None
+        ]
+        if user_id:
+            filters.append(models.User.user_id == user_id)
+        if user_types:
+            user_type_list = [t.strip() for t in user_types.split(",") if t.strip()]
+            if user_type_list:
+                filters.append(models.User.user_type.in_(user_type_list))
+        if search: 
+            filters.append(
+                or_(
+                    models.User.name.ilike(f"%{search}%"),
+                    models.User.email.ilike(f"%{search}%"),
+                    models.User.mobile_no.ilike(f"%{search}%"),
+                    models.User.user_type.ilike(f"%{search}%"),
+                )
+            )
+        users = (
+            db.query(
+                models.User
+            )
+            .filter(*filters)
+            .order_by(models.User.updated_at.desc())
+            .all()
+        )
+
+
+        keys = (
+            "created_at",
+            "updated_at",
+            "name",
+            "email",
+            "mobile_no",
+            "is_active",
+            "user_type",
+        )
+        headers = (
+            "Date Created",
+            "Date Updated",
+            "Full Name",
+            "Email Address",
+            "Mobile No",
+            "Active",
+            "Type"
+        )
+
+        if user_types == "subscriber":
+            keys += ("device_id","data_limit","data_usage","tier")
+            headers + ("Device ID","Data Limit","Data Usage","Tier")
+
+        raw_data = {
+            "header": keys,
+            "headers": headers,
+            "rows": jsonable_encoder(users)
+        }
+        data = common.format_excel(rawData=raw_data)
+        return common.get_media_return(
+            file_name=filename,
+            file_type=file_type,
+            data=data,
+        )
+
+    
     def delete_user(
         self,
         db: Session,

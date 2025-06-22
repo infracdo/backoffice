@@ -17,13 +17,15 @@ class AuthController:
     ):
         user = (
             db.query(models.User)
-            .filter(models.User.email == credentials["email"]).first()
+            .filter(
+                 models.User.deleted_at == None,
+                 models.User.email == credentials["email"]).first()
         )
         if not user:
              return PostResponse(
                 status="error",
                 status_code=401,
-                message="Invalid credentials"
+                message="Invalid email or password."
             ).__dict__
         verified = common.verify_password(
             password=credentials["password"], 
@@ -33,14 +35,14 @@ class AuthController:
             return PostResponse(
                 status="error",
                 status_code=401,
-                message="Invalid credentials"
+                message="Invalid email or password."
             ).__dict__
 
         if not user.is_active:
             return PostResponse(
                 status="error",
                 status_code=403,
-                message="User account is inactive.",
+                message="Access denied. Account is currently deactivated",
             ).__dict__
 
         time_now = common.get_timestamp(1)
@@ -78,7 +80,9 @@ class AuthController:
 
         user = (
             db.query(models.User)
-            .filter(models.User.email == email).first()
+            .filter(
+                 models.User.deleted_at == None,
+                 models.User.email == email).first()
         )
         if not user:
             return PostResponse(
@@ -124,8 +128,17 @@ class AuthController:
 
         user = (
             db.query(models.User)
-            .filter_by(user_id=current_user["user_id"]).first()
+            .filter(
+                models.User.deleted_at == None,
+                models.User.user_id == current_user["user_id"]
+            )
         )
+        if not user:
+            return PostResponse(
+                status="error",
+                status_code=401,
+                message="User not found",
+            ).__dict__
 
         if not (common.verify_password(
             password=payload["old_password"], hashed_password=user.password
