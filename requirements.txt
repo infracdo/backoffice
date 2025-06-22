@@ -10,3 +10,4 @@ pydantic[email]
 PyJWT
 bcrypt
 mandrill
+openpyxl
