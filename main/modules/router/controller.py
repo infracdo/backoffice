@@ -104,7 +104,8 @@ class RouterController:
         payload: dict,
         with_total_data_usage: bool,
         with_total_subscribers: bool,
-        search: Optional[str] = None
+        search: Optional[str] = None,
+        business_owner_id: Optional[str] = None
     ):
         limit = payload.get("limit",9999999)
         page = payload.get("page",1)
@@ -124,6 +125,9 @@ class RouterController:
                     models.User.name.ilike(f"%{search}%"),
                 )
             )
+        if business_owner_id:
+            filters.append(models.Router.owner_user_id == business_owner_id)
+            
         # get total rows count
         data = db.query(models.Router).filter(*filters)
         total_rows = data.count()

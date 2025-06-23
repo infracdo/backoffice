@@ -50,7 +50,8 @@ async def router_list(
     payload: GetPayload = Depends(), 
     with_total_data_usage: Annotated[bool, Query()] = False,
     with_total_subscribers: Annotated[bool, Query()] = False,
-    search: Annotated[str, Query()] = None
+    search: Annotated[str, Query()] = None,
+    business_owner_id: Annotated[str, Query()] = None
 ) -> Any:
 
     """
@@ -61,7 +62,8 @@ async def router_list(
         payload=payload.dict(exclude_none=True),
         with_total_data_usage=with_total_data_usage,
         with_total_subscribers=with_total_subscribers,
-        search=search
+        search=search,
+        business_owner_id=business_owner_id
     )
 
 @router.get('/list/download')
