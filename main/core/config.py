@@ -18,6 +18,8 @@ class Settings(BaseSettings):
     MANDRILL_NAME: str
     MANDRILL_EMAIL: str
 
+    MACRODROID_URL: str
+
     POSTGRES_SERVER: str
     POSTGRES_USER: str
     POSTGRES_PASSWORD: str

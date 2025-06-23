@@ -369,9 +369,9 @@ class Common:
     def normalize_ph_number(self, phone: str):
         phone = phone.strip()
         if phone.startswith("09"):
-            return "+63" + phone[1:]
+            return phone[1:]
         elif phone.startswith("+63"):
-            return phone
+            return phone[3:]
         else:
             return None
 

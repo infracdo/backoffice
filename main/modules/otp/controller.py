@@ -3,19 +3,9 @@ from sqlalchemy.orm import Session
 from sqlalchemy import or_, cast, String
 from main import models
 from main.library.common import common
+from main.library.macrodroidInterface import macrodroid_interface
 from main.schemas.common import OTPResponse, PostResponse, GetResponse
-from main.core.config import Settings
 from typing import Optional
-# from twilio.rest import Client
-import requests
-from urllib.parse import urlencode
-
-
-settings = Settings()
-# account_sid = settings.TWILIO_ACCOUNT_SID
-# auth_token = settings.TWILIO_AUTH_TOKEN
-# twilio_number = settings.TWILIO_PHONE_NUMBER
-# client = Client(account_sid, auth_token)
 
 class OtpController:
 
@@ -33,40 +23,43 @@ class OtpController:
                 message="Invalid Philippine number format.",
             ).__dict__
 
-        # otp = common.generate_mobile_otp() 
-        # message_body = f"Your Zeep OTP code is: {otp}"
-        otp = "1234"
+        otp = common.generate_mobile_otp() 
+        message_body = f"Your Zeep OTP code is: {otp}"
+
         try:
-
-            # result = self.send_twilio_sms(payload["mobile_no"], message_body)
-            # result = self.send_semaphore_sms(payload["mobile_no"], message_body)
-            ref_id  = common.generate_ref_id() # sample ref
-            time_now = common.get_timestamp(1)
-            new_otp = models.MobileOtp(
-                otp=otp,
-                mobile_no=payload["mobile_no"],
-                device_id=payload["device_id"],
-                otp_id=common.uuid_generator(),
-                ref_id = ref_id,
-                created_at=time_now
+            result = self.send_sms(
+                macrodroid_interface, clean_num, message_body
             )
-            db.add(new_otp)
-            db.commit()
-            db.refresh(new_otp)
-
-            return OTPResponse(
-                status="ok",
-                status_code=200,
-                otp=otp            
-            ).__dict__
-
+            print("result ", result)
         except Exception as e:
+            print("SEND OTP: FAILED:", e)
             return PostResponse(
                 status="error",
                 status_code=500,
-                message="Sending OTP failed.",
-                detail=str(e)
+                message="Sending OTP failed",
+                details=str(e)
             ).__dict__
+        
+        ref_id  = common.generate_ref_id() # sample ref
+        time_now = common.get_timestamp(1)
+        new_otp = models.MobileOtp(
+            otp=otp,
+            mobile_no=payload["mobile_no"],
+            device_id=payload["device_id"],
+            otp_id=common.uuid_generator(),
+            ref_id = ref_id,
+            created_at=time_now
+        )
+        db.add(new_otp)
+        db.commit()
+        db.refresh(new_otp)
+
+        return OTPResponse(
+            status="ok",
+            status_code=200,
+            otp=otp            
+        ).__dict__
+            
 
         
     
@@ -175,26 +168,6 @@ class OtpController:
         )
 
 
-    # def send_semaphore_sms(self, to: str, message: str):
-    #     url = "https://api.semaphore.co/api/v4/messages"
-    #     data = {
-    #         "apikey": settings.SEMAPHORE_API_KEY,
-    #         "number": to,
-    #         "message": message,
-    #         "sendername": "frencys"
-    #     }
-    #     response = requests.post(url, data=data)
-    #     print("S E M A  -   R E S", response)
-    #     if response.status_code != 200:
-    #         raise Exception(f"Semaphore Error: {response.text}")
-    #     return response.json()
-
-
-    # def send_twilio_sms(self, to: str, message: str):
-    #     message = client.messages.create(
-    #             body=message,
-    #             from_=twilio_number,
-    #             to=to
-    #         )
-    #     print("T W I L I O  -   R E S", message)
-    #     return message
+    def send_sms(self, sms: macrodroid_interface, mobile_no: str, message: str):
+        ret = sms.client.send(f"+63{mobile_no}", message)
+        return ret
