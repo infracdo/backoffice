@@ -6,6 +6,7 @@ from main import models
 from main.library.common import common
 from main.schemas.common import PostResponse, GetResponse
 from typing import Optional
+from collections import defaultdict
 
 class UserController:
 
@@ -417,18 +418,40 @@ class UserController:
             if user_type_list:
                 filters.append(models.User.user_type.in_(user_type_list))
 
-        if user_types == "business_owner":
-            print("ok wait")
-
         if search: 
-            filters.append(
-                or_(
-                    models.User.name.ilike(f"%{search}%"),
-                    models.User.email.ilike(f"%{search}%"),
-                    models.User.mobile_no.ilike(f"%{search}%"),
-                    models.User.user_type.ilike(f"%{search}%"),
+            if user_types == "admin,support":
+                filters.append(
+                    or_(
+                        models.User.name.ilike(f"%{search}%"),
+                        models.User.email.ilike(f"%{search}%"),
+                        models.User.mobile_no.ilike(f"%{search}%"),
+                        models.User.user_type.ilike(f"%{search}%"),
+                        cast(models.User.created_at, String).ilike(search),
+                    )
                 )
-            )
+            elif user_types == "business_owner":
+                filters.append(
+                    or_(
+                        models.User.name.ilike(f"%{search}%"),
+                        models.User.email.ilike(f"%{search}%"),
+                        models.User.mobile_no.ilike(f"%{search}%"),
+                        cast(models.User.created_at, String).ilike(search),
+                    )
+                )
+            else :
+                filters.append(
+                    or_(
+                        models.User.name.ilike(f"%{search}%"),
+                        models.User.email.ilike(f"%{search}%"),
+                        models.User.mobile_no.ilike(f"%{search}%"),
+                        models.User.device_id.ilike(f"%{search}%"),
+                        cast(models.User.data_limit, String).ilike(search),
+                        cast(models.User.data_usage, String).ilike(search),
+                        models.User.tier.ilike(f"%{search}%"),
+                        cast(models.User.created_at, String).ilike(search),
+                    )
+                )
+
         limit = payload.get("limit",9999999)
         page = payload.get("page",1)
         if payload.get("id"):
@@ -453,10 +476,37 @@ class UserController:
             .all()
         )
 
+        if user_types == "business_owner":
+            user_ids = [user.user_id for user in users]
+
+            routers = (
+                db.query(
+                    models.Router
+                )
+                .filter(
+                    models.Router.deleted_at == None,
+                    models.Router.owner_user_id.in_(user_ids))
+                .order_by(models.Router.updated_at.desc())
+                .all()
+            )
+
+            router_map = defaultdict(list)
+            for router in routers:
+                router_map[router.owner_user_id].append(router)
+
+            # Attach routers to each user
+            for user in users:
+                user_routers = router_map.get(user.user_id, [])
+                user.routers = user_routers
+                user.total_routers = len(user_routers)
+                user.total_data_usage = sum(router.data_usage or 0 for router in user_routers)
+                user.total_subscribers = sum(router.subscribers_count or 0 for router in user_routers)
+
+
         return GetResponse(
             status="ok",
             status_code=200,
-            data=jsonable_encoder(users),
+            data=jsonable_encoder(users) if users else [],
             total_rows=total_rows
         ).__dict__
 
@@ -480,14 +530,39 @@ class UserController:
             if user_type_list:
                 filters.append(models.User.user_type.in_(user_type_list))
         if search: 
-            filters.append(
-                or_(
-                    models.User.name.ilike(f"%{search}%"),
-                    models.User.email.ilike(f"%{search}%"),
-                    models.User.mobile_no.ilike(f"%{search}%"),
-                    models.User.user_type.ilike(f"%{search}%"),
+            if user_types == "admin,support":
+                filters.append(
+                    or_(
+                        models.User.name.ilike(f"%{search}%"),
+                        models.User.email.ilike(f"%{search}%"),
+                        models.User.mobile_no.ilike(f"%{search}%"),
+                        models.User.user_type.ilike(f"%{search}%"),
+                        cast(models.User.created_at, String).ilike(search),
+                    )
                 )
-            )
+            elif user_types == "business_owner":
+                filters.append(
+                    or_(
+                        models.User.name.ilike(f"%{search}%"),
+                        models.User.email.ilike(f"%{search}%"),
+                        models.User.mobile_no.ilike(f"%{search}%"),
+                        cast(models.User.created_at, String).ilike(search),
+                    )
+                )
+            else :
+                filters.append(
+                    or_(
+                        models.User.name.ilike(f"%{search}%"),
+                        models.User.email.ilike(f"%{search}%"),
+                        models.User.mobile_no.ilike(f"%{search}%"),
+                        models.User.device_id.ilike(f"%{search}%"),
+                        cast(models.User.data_limit, String).ilike(search),
+                        cast(models.User.data_usage, String).ilike(search),
+                        models.User.tier.ilike(f"%{search}%"),
+                        cast(models.User.created_at, String).ilike(search),
+                    )
+                )
+
         users = (
             db.query(
                 models.User
@@ -496,6 +571,31 @@ class UserController:
             .order_by(models.User.updated_at.desc())
             .all()
         )
+
+        if user_types == "business_owner":
+            user_ids = [user.user_id for user in users]
+
+            routers = (
+                db.query(
+                    models.Router
+                )
+                .filter(
+                    models.Router.deleted_at == None,
+                    models.Router.owner_user_id.in_(user_ids))
+                .order_by(models.Router.updated_at.desc())
+                .all()
+            )
+
+            router_map = defaultdict(list)
+            for router in routers:
+                router_map[router.owner_user_id].append(router)
+
+            # Attach routers to each user
+            for user in users:
+                user_routers = router_map.get(user.user_id, [])
+                user.total_routers = len(user_routers)
+                user.total_data_usage = sum(router.data_usage or 0 for router in user_routers)
+                user.total_subscribers = sum(router.subscribers_count or 0 for router in user_routers)
 
 
         keys = (
@@ -519,7 +619,11 @@ class UserController:
 
         if user_types == "subscriber":
             keys += ("device_id","data_limit","data_usage","tier")
-            headers + ("Device ID","Data Limit","Data Usage","Tier")
+            headers += ("Device ID","Data Limit","Data Usage","Tier")
+        
+        if user_types == "business_owner":
+            keys += ("total_routers","total_data_usage","total_subscribers")
+            headers += ("Total Routers","Total Data Usage", "Total Subscribers")
 
         raw_data = {
             "header": keys,
