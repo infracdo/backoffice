@@ -204,3 +204,20 @@ async def delete_user(
         db=db,
         id=id
     )
+
+
+@router.get('/check')
+async def check_by_mobile(
+    db: Annotated[Session, Depends(deps.get_db)],
+    *,
+    _: Annotated[dict, Depends(jwt_required)],
+    mobile_no: str
+) -> Any:
+
+    """
+    Check User by Mobile No
+    """
+    return controller.check_by_mobile(
+        db=db,
+        mobile_no=mobile_no
+    )

@@ -416,6 +416,10 @@ class UserController:
             user_type_list = [t.strip() for t in user_types.split(",") if t.strip()]
             if user_type_list:
                 filters.append(models.User.user_type.in_(user_type_list))
+
+        if user_types == "business_owner":
+            print("ok wait")
+
         if search: 
             filters.append(
                 or_(
@@ -556,3 +560,34 @@ class UserController:
             status_code=200,
             message="User successfully deleted"
         ).__dict__
+
+
+
+    def check_by_mobile(
+        self,
+        db: Session,
+        mobile_no: str
+    ):
+
+        user = (
+            db.query(models.User)
+            .filter(
+                models.User.deleted_at == None,
+                models.User.mobile_no == mobile_no
+            )
+            .one_or_none()
+        )
+        if not user:
+            return PostResponse(
+                status="error",
+                status_code=400,
+                message="User not found"
+            ).__dict__
+
+        else:
+            return PostResponse(
+                status="ok",
+                status_code=200,
+                message="User  found",
+                data=jsonable_encoder(user)
+            ).__dict__
