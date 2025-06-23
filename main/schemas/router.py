@@ -4,7 +4,11 @@ from typing import Optional, Union, Dict, List
 class CreateRouter(BaseModel):
     serial_no: str
     router_model: str
-    router_version: str
+    router_version: Optional[str] = None
+    mac_address: str
+    ip_address: str
+    password: str
+    qr_string: str
     long: float
     lat: float
 
@@ -14,6 +18,10 @@ class UpdateRouter(BaseModel):
     serial_no: Optional[str] = None
     router_model: Optional[str] = None
     router_version: Optional[str] = None
+    mac_address: Optional[str] = None
+    ip_address: Optional[str] = None
+    password: Optional[str] = None
+    qr_string: Optional[str] = None
     data_usage: Optional[float] = None
     subscribers_count: Optional[int] = None
     long: Optional[float] = None

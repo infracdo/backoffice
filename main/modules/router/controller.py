@@ -34,7 +34,11 @@ class RouterController:
         new_router = models.Router(
             serial_no=payload["serial_no"],
             router_model=payload["router_model"],
-            router_version=payload["router_version"],
+            router_version=payload.get("router_version"),
+            mac_address=payload["mac_address"],
+            ip_address=payload["ip_address"],
+            password=payload["password"],
+            qr_string=payload["qr_string"],
             long=payload["long"],
             lat=payload["lat"],
             owner_user_id=current_user.get("user_id"),

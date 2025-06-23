@@ -1,10 +1,12 @@
 from fastapi.encoders import jsonable_encoder
 from sqlalchemy.orm import Session
+from sqlalchemy import or_
 from main import models
 from main.library.common import common
 from main.library.mailer import mailer
 from main.schemas.common import PostResponse
 from main.core.config import Settings
+
 
 settings = Settings()
 
@@ -19,13 +21,17 @@ class AuthController:
             db.query(models.User)
             .filter(
                  models.User.deleted_at == None,
-                 models.User.email == credentials["email"]).first()
+                 or_(
+                    models.User.email == credentials["email_or_mobile_no"],
+                    models.User.mobile_no == credentials["email_or_mobile_no"]
+                )
+            ).first()
         )
         if not user:
              return PostResponse(
                 status="error",
                 status_code=401,
-                message="Invalid email or password."
+                message="Invalid credentials."
             ).__dict__
         verified = common.verify_password(
             password=credentials["password"], 
@@ -35,7 +41,7 @@ class AuthController:
             return PostResponse(
                 status="error",
                 status_code=401,
-                message="Invalid email or password."
+                message="Invalid credentials."
             ).__dict__
 
         if not user.is_active:

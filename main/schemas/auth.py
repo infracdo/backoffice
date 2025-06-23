@@ -2,7 +2,7 @@ from pydantic import BaseModel
 from typing import Optional, Union
 
 class Signin(BaseModel):
-    email: str
+    email_or_mobile_no: str
     password: str
 
 class ForgotPassword(BaseModel):
