@@ -19,6 +19,18 @@ class RouterController:
         payload: dict
     ):
 
+        user = (
+            db.query(models.User)
+            .filter_by(user_id=payload["business_owner_id"])
+            .one_or_none()
+        )
+        if not user:
+            return PostResponse(
+                status="error",
+                status_code=400,
+                message="User not found"
+            ).__dict__
+
         existing_serial = (
             db.query(models.Router)
             .filter(models.Router.serial_no == payload["serial_no"]).first()
@@ -41,7 +53,8 @@ class RouterController:
             qr_string=payload["qr_string"],
             long=payload["long"],
             lat=payload["lat"],
-            owner_user_id=current_user.get("user_id"),
+            owner_user_id=payload["business_owner_id"],
+            created_by=current_user.get("user_id"),
             router_id=common.uuid_generator(),
             created_at=time_now,
             updated_at=time_now

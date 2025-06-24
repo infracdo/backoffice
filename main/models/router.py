@@ -25,6 +25,7 @@ class Router(Base):
     subscribers_count = Column(Integer, default=0)
     long = Column(Float)
     lat = Column(Float)
+    created_by = Column(Text)
     is_enabled = Column(Boolean, default=True)
     created_at = Column(DateTime, index=True)
     updated_at = Column(DateTime, index=True)

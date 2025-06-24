@@ -2,6 +2,7 @@ from pydantic import BaseModel
 from typing import Optional, Union, Dict, List
 
 class CreateRouter(BaseModel):
+    business_owner_id: str
     serial_no: str
     router_model: str
     router_version: Optional[str] = None
