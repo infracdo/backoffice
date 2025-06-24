@@ -288,11 +288,21 @@ class UserController:
                 status_code=400,
                 message="Email already registered"
             ).__dict__
+        
+        clean_num = common.normalize_ph_number(payload["mobile_no"])
+        if not clean_num:
+            return PostResponse(
+                status="error",
+                status_code=400,
+                message="Invalid Philippine number format.",
+            ).__dict__
+        mobile_no = f"+63{clean_num}"
+
         existing_mobile = (
             db.query(models.User)
             .filter(
                 models.User.deleted_at == None,
-                models.User.mobile_no == payload["mobile_no"]
+                models.User.mobile_no == mobile_no
             ).first()
         )
         if existing_mobile:
@@ -325,7 +335,7 @@ class UserController:
         new_user = models.User(
             name=payload["name"],
             email=payload["email"],
-            mobile_no=payload["mobile_no"],
+            mobile_no=mobile_no,
             user_type=payload["user_type"],
             device_id=payload.get("device_id"),
             data_limit=data_limit,
@@ -388,7 +398,18 @@ class UserController:
         update_data["updated_at"] = common.get_timestamp(1)
         for field in user_data:
             if field in update_data:
-                setattr(user, field, update_data[field])
+                if field == "mobile_no":
+                    clean_num = common.normalize_ph_number(payload["mobile_no"])
+                    if not clean_num:
+                        return PostResponse(
+                            status="error",
+                            status_code=400,
+                            message="Invalid Philippine number format.",
+                        ).__dict__
+                    mobile_no = f"+63{clean_num}"
+                    setattr(user, "mobile_no", mobile_no)
+                else:
+                    setattr(user, field, update_data[field])
         
         db.commit()
         db.refresh(user)
@@ -673,6 +694,14 @@ class UserController:
         mobile_no: str
     ):
 
+        clean_num = common.normalize_ph_number(mobile_no)
+        if not clean_num:
+            return PostResponse(
+                status="error",
+                status_code=400,
+                message="Invalid Philippine number format.",
+            ).__dict__
+        mobile_no = f"+63{clean_num}"
         user = (
             db.query(models.User)
             .filter(
@@ -692,6 +721,6 @@ class UserController:
             return PostResponse(
                 status="ok",
                 status_code=200,
-                message="User  found",
+                message="User found",
                 data=jsonable_encoder(user)
             ).__dict__
