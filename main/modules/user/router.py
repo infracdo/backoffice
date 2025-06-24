@@ -17,7 +17,6 @@ async def user_types(
     db: Annotated[Session, Depends(deps.get_db)],
     *,
     _: Annotated[dict, Depends(jwt_required)],
-    payload: GetPayload = Depends(),
 ) -> Any:
 
     """
@@ -25,7 +24,6 @@ async def user_types(
     """
     return controller.user_types(
         db=db,
-        payload=payload.dict(exclude_none=True)
     )
 
 @router.get('/tiers')

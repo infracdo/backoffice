@@ -13,40 +13,18 @@ class UserController:
     def user_types(
         self,
         db: Session,
-        payload: dict
     ):
-        limit = payload.get("limit",9999999)
-        page = payload.get("page",1)
-
-        filters = [
-            models.UserRole.deleted_at == None
-        ]
-        if payload.get("id"):
-            filters.append(models.UserRole.type == payload.get("id"))
-
-        # get total rows count
-        data = db.query(models.UserRole).filter(*filters)
-        total_rows = data.count()
-
-        limit = int(limit) if limit else 0
-        page = int(page) if page else 0
-        offset = (page - 1) * limit if limit and page else None
-
         roles = (
             db.query(
                 models.UserRole
             )
-            .filter(*filters)
-            .limit(limit)
-            .offset(offset)
             .all()
         )
 
         return GetResponse(
             status="ok",
             status_code=200,
-            data=jsonable_encoder(roles),
-            total_rows=total_rows
+            data=jsonable_encoder(roles)
         )
     
 
