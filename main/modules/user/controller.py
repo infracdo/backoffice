@@ -24,7 +24,8 @@ class UserController:
         return GetResponse(
             status="ok",
             status_code=200,
-            data=jsonable_encoder(roles)
+            data=jsonable_encoder(roles),
+            total_rows = len(roles)
         )
     
 
