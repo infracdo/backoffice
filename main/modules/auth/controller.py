@@ -17,13 +17,19 @@ class AuthController:
         db: Session,
         credentials: dict
     ):
+
+        user_cred = credentials["email_or_mobile_no"]
+        clean_num = common.normalize_ph_number(user_cred)
+        if clean_num:
+            user_cred = f"+63{clean_num}"
+
         user = (
             db.query(models.User)
             .filter(
                  models.User.deleted_at == None,
                  or_(
                     models.User.email == credentials["email_or_mobile_no"],
-                    models.User.mobile_no == credentials["email_or_mobile_no"]
+                    models.User.mobile_no == user_cred
                 )
             ).first()
         )
