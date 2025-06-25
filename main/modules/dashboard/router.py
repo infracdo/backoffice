@@ -42,6 +42,22 @@ async def get_online(
         db=db,
     )
 
+@router.get('/data')
+async def get_data(
+    db: Annotated[Session, Depends(deps.get_db)],
+    *,
+    _: Annotated[dict, Depends(jwt_required)],
+) -> Any:
+
+    """
+    Get Dashboard Data
+    """
+    return controller.get_data(
+        db=db
+    )
+
+
+
 @router.put("/update",response_model=dict)
 async def update_realtime_data(
     db: Annotated[Session, Depends(deps.get_db)],
