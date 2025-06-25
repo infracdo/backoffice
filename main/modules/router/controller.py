@@ -295,3 +295,55 @@ class RouterController:
             status_code=200,
             message="Router successfully deleted"
         ).__dict__
+
+
+    def update_router_usage(
+        self,
+        db: Session,
+        payload: dict
+    ):
+
+        router = (
+            db.query(models.Router)
+            .filter(models.Router.mac_address==payload["router_mac"])
+            .one_or_none()
+        )
+        if not router:
+            return PostResponse(
+                status="error",
+                status_code=400,
+                message="Router mac address not found"
+            ).__dict__
+        
+
+        router.data_usage = payload["router_usage"]
+        router.subscribers_count = payload["router_subscribers_count"]
+        router.updated_at = common.get_timestamp(1)
+
+        user = (
+            db.query(models.User)
+            .filter(models.User.device_id==payload["device_id"])
+            .one_or_none()
+        )
+        if not user:
+            return PostResponse(
+                status="error",
+                status_code=400,
+                message="User device id not found"
+            ).__dict__
+
+        user.data_usage = payload["device_usage"]
+        user.updated_at = common.get_timestamp(1)
+
+        db.commit()
+        db.refresh(router)
+        db.refresh(user)
+        
+
+        return PostResponse(
+            status="ok",
+            status_code=200,
+            message="Router and User successfully updated"
+        ).__dict__
+
+    

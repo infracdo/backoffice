@@ -28,3 +28,11 @@ class UpdateRouter(BaseModel):
     long: Optional[float] = None
     lat: Optional[float] = None
     is_enabled: Optional [bool] = None
+
+
+class UpdateRouterUsage(BaseModel):
+    router_mac: str
+    router_usage: float
+    router_subscribers_count: int
+    device_id:  str
+    device_usage: float

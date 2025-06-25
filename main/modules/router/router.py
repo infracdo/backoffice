@@ -1,6 +1,6 @@
 from main.core import deps
 from main.modules.router.controller import RouterController
-from main.schemas.router import CreateRouter, UpdateRouter
+from main.schemas.router import CreateRouter, UpdateRouter, UpdateRouterUsage
 from main.schemas.common import GetPayload
 from main.core.security import jwt_required
 from sqlalchemy.orm import Session
@@ -101,4 +101,19 @@ async def delete_router(
     return controller.delete_router(
         db=db,
         id=id
+    )
+
+@router.put("/update/usage",response_model=dict)
+async def update_router_usage(
+    db: Annotated[Session, Depends(deps.get_db)],
+    *,
+    _: Annotated[dict, Depends(jwt_required)],
+    payload: UpdateRouterUsage
+) -> Any:
+    """
+        Update Router Data Usage and Subscribers Count
+    """
+    return controller.update_router_usage(
+        db=db,
+        payload=payload.dict(exclude_none=True)
     )
