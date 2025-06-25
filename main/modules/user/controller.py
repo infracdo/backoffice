@@ -302,6 +302,28 @@ class UserController:
             ).__dict__
 
         if is_subscriber:
+            device_id = payload.get("device_id")
+            if not device_id:
+                return PostResponse(
+                    status="error",
+                    status_code=400,
+                    message="Missing Device ID"
+                ).__dict__
+
+            existing_device_id = (
+                db.query(models.User)
+                .filter(
+                    models.User.deleted_at == None,
+                    models.User.device_id == device_id
+                ).first()
+            )
+            if existing_device_id:
+                return PostResponse(
+                    status="error",
+                    status_code=400,
+                    message="Device ID already registered"
+                ).__dict__
+
             tier_data = (
                 db.query(models.Tier)
                 .filter(models.Tier.is_default_tier == True).first()

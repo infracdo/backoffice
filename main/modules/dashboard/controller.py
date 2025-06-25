@@ -53,7 +53,7 @@ class DashboardController:
         data = (
             db.query(models.Dashboard)
             .filter(models.Dashboard.type=="online-dashboard")
-            .one_or_none()
+            .first()
         )
         if not data:
             return PostResponse(
@@ -80,7 +80,7 @@ class DashboardController:
         data = (
             db.query(models.Dashboard)
             .filter(models.Dashboard.type=="online-dashboard")
-            .one_or_none()
+            .first()
         )
         if not data:
             return PostResponse(

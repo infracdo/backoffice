@@ -21,8 +21,12 @@ class RouterController:
 
         user = (
             db.query(models.User)
-            .filter_by(user_id=payload["business_owner_id"])
-            .one_or_none()
+            .filter(
+                models.User.deleted_at == None,
+                models.User.user_type == "business_owner",
+                models.User.user_id == payload["business_owner_id"]
+            )
+            .first()
         )
         if not user:
             return PostResponse(
@@ -33,13 +37,30 @@ class RouterController:
 
         existing_serial = (
             db.query(models.Router)
-            .filter(models.Router.serial_no == payload["serial_no"]).first()
+            .filter(
+                models.Router.deleted_at == None,
+                models.Router.serial_no == payload["serial_no"]
+            ).first()
         )
         if existing_serial:
             return PostResponse(
                 status="error",
                 status_code=400,
                 message="Serial No. already registered"
+            ).__dict__
+
+        existing_mac = (
+            db.query(models.Router)
+            .filter(
+                models.Router.deleted_at == None,
+                models.Router.mac_address == payload["mac_address"]
+            ).first()
+        )
+        if existing_mac:
+            return PostResponse(
+                status="error",
+                status_code=400,
+                message="MAC already registered"
             ).__dict__
 
         time_now = common.get_timestamp(1)
@@ -305,8 +326,10 @@ class RouterController:
 
         router = (
             db.query(models.Router)
-            .filter(models.Router.mac_address==payload["router_mac"])
-            .one_or_none()
+            .filter(
+                models.Router.deleted_at == None,
+                models.Router.mac_address == payload["router_mac"])
+            .first()
         )
         if not router:
             return PostResponse(
@@ -322,8 +345,12 @@ class RouterController:
 
         user = (
             db.query(models.User)
-            .filter(models.User.device_id==payload["device_id"])
-            .one_or_none()
+            .filter(
+                models.User.deleted_at == None,
+                models.User.user_type == "subscriber",
+                models.User.device_id == payload["device_id"]
+            )
+            .first()
         )
         if not user:
             return PostResponse(
