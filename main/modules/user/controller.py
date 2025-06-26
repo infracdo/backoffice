@@ -254,13 +254,26 @@ class UserController:
         is_subscriber = payload["user_type"] == "subscriber"
         new_subscriber_tier = None
         data_limit = None
+
+        user_type = payload["user_type"]
+        mobile_app_users = ["subscriber", "business_owner"]
+        is_mobile = user_type in mobile_app_users
+        mobile_app_filter = [
+            models.User.deleted_at == None,
+            models.User.user_type == user_type
+        ]
+        backoffice_filter = [
+            models.User.deleted_at == None,
+            ~models.User.user_type.in_(["subscriber", "business_owner"])
+        ]        
+
+        email_filter = mobile_app_filter.copy() if is_mobile \
+            else backoffice_filter.copy()
+        email_filter.append(models.User.email == payload["email"])
         existing_email = (
             db.query(models.User)
-            .filter(
-                models.User.deleted_at == None,
-                models.User.user_type == payload["user_type"],
-                models.User.email == payload["email"]
-            ).first()
+            .filter(*email_filter)
+            .first()
         )
         if existing_email:
             return PostResponse(
@@ -278,13 +291,12 @@ class UserController:
             ).__dict__
         mobile_no = f"+63{clean_num}"
 
+        mobile_filter = mobile_app_filter.copy() if is_mobile \
+            else backoffice_filter.copy()
+        mobile_filter.append(models.User.mobile_no == mobile_no)
         existing_mobile = (
             db.query(models.User)
-            .filter(
-                models.User.deleted_at == None,
-                models.User.user_type == payload["user_type"],
-                models.User.mobile_no == mobile_no
-            ).first()
+            .filter(*mobile_filter).first()
         )
         if existing_mobile:
             return PostResponse(
@@ -312,13 +324,12 @@ class UserController:
                     message="Missing Device ID"
                 ).__dict__
 
+            device_filter = mobile_app_filter.copy()
+            device_filter.append(models.User.device_id == device_id)
             existing_device_id = (
                 db.query(models.User)
-                .filter(
-                    models.User.deleted_at == None,
-                    models.User.user_type == payload["user_type"],
-                    models.User.device_id == device_id
-                ).first()
+                .filter(*device_filter)
+                .first()
             )
             if existing_device_id:
                 return PostResponse(

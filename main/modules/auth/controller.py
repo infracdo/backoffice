@@ -23,17 +23,27 @@ class AuthController:
         if clean_num:
             user_cred = f"+63{clean_num}"
 
+        user_type = credentials["user_type"]
+        filters = [
+            models.User.deleted_at == None,
+            or_(
+                models.User.email == credentials["email_or_mobile_no"],
+                models.User.mobile_no == user_cred
+            )
+        ]
+        if user_type == "backoffice_user":
+            filters.append(
+                ~models.User.user_type.in_(["subscriber", "business_owner"])
+            )
+        else:
+            filters.append(models.User.user_type == user_type)
+
         user = (
             db.query(models.User)
-            .filter(
-                models.User.deleted_at == None,
-                models.User.user_type == credentials["user_type"],
-                 or_(
-                    models.User.email == credentials["email_or_mobile_no"],
-                    models.User.mobile_no == user_cred
-                )
-            ).first()
+            .filter(*filters)
+            .first()
         )
+        
         if not user:
              return PostResponse(
                 status="error",
@@ -92,13 +102,23 @@ class AuthController:
                 from_email=settings.MANDRILL_EMAIL,
             )
 
+        filters = [
+            models.User.deleted_at == None,
+            models.User.email == email
+        ]
+        if user_type == "backoffice_user":
+            filters.append(
+                ~models.User.user_type.in_(["subscriber", "business_owner"])
+            )
+        else:
+            filters.append(models.User.user_type == user_type)
+
         user = (
             db.query(models.User)
-            .filter(
-                models.User.deleted_at == None,
-                models.User.user_type == user_type,
-                models.User.email == email).first()
+            .filter(*filters)
+            .first()
         )
+
         if not user:
             return PostResponse(
                 status="error",
