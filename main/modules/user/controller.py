@@ -258,6 +258,7 @@ class UserController:
             db.query(models.User)
             .filter(
                 models.User.deleted_at == None,
+                models.User.user_type == payload["user_type"],
                 models.User.email == payload["email"]
             ).first()
         )
@@ -281,6 +282,7 @@ class UserController:
             db.query(models.User)
             .filter(
                 models.User.deleted_at == None,
+                models.User.user_type == payload["user_type"],
                 models.User.mobile_no == mobile_no
             ).first()
         )
@@ -314,6 +316,7 @@ class UserController:
                 db.query(models.User)
                 .filter(
                     models.User.deleted_at == None,
+                    models.User.user_type == payload["user_type"],
                     models.User.device_id == device_id
                 ).first()
             )

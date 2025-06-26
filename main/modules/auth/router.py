@@ -37,7 +37,8 @@ async def forgot_password(
     """
     return controller.forgot_password(
         db=db,
-        email=payload.email
+        email=payload.email,
+        user_type=payload.user_type
     )
 
 @router.put("/change-password")

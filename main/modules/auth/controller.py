@@ -26,7 +26,8 @@ class AuthController:
         user = (
             db.query(models.User)
             .filter(
-                 models.User.deleted_at == None,
+                models.User.deleted_at == None,
+                models.User.user_type == credentials["user_type"],
                  or_(
                     models.User.email == credentials["email_or_mobile_no"],
                     models.User.mobile_no == user_cred
@@ -78,7 +79,8 @@ class AuthController:
     def forgot_password(
         self,
         db: Session,
-        email: str
+        email: str,
+        user_type: str
     ):
 
         time_now = common.get_timestamp(1)
@@ -93,8 +95,9 @@ class AuthController:
         user = (
             db.query(models.User)
             .filter(
-                 models.User.deleted_at == None,
-                 models.User.email == email).first()
+                models.User.deleted_at == None,
+                models.User.user_type == user_type,
+                models.User.email == email).first()
         )
         if not user:
             return PostResponse(
@@ -144,6 +147,7 @@ class AuthController:
                 models.User.deleted_at == None,
                 models.User.user_id == current_user["user_id"]
             )
+            .first()
         )
         if not user:
             return PostResponse(
