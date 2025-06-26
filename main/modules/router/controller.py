@@ -1,14 +1,14 @@
 import jwt
+import requests
 from fastapi.encoders import jsonable_encoder
 from sqlalchemy.orm import Session
 from sqlalchemy import or_, cast, String
 from main import models
 from main.library.common import common
 from main.schemas.common import PostResponse, GetResponse, GetResponseWithDataUsage
-from main.core.config import Settings
+from main.core.config import settings
 from typing import Optional
 
-settings = Settings()
 
 class RouterController:
 
@@ -80,6 +80,21 @@ class RouterController:
             created_at=time_now,
             updated_at=time_now
         )
+        
+        router_data ={
+            "mac_address" : new_router.mac_address,
+            "router_model": new_router.router_model,
+            "serial_no" : new_router.serial_no,
+            "business_owner_name": user.name,
+            "lat" : new_router.lat,
+            "long" : new_router.long,
+            "owner_user_id" : new_router.owner_user_id,
+            "router_id" : new_router.router_id
+        } 
+
+        api_ret = self.send_to_router_api(data=router_data)
+        print("api_ret ", api_ret)
+
         db.add(new_router)
         db.commit()
         db.refresh(new_router)
@@ -374,3 +389,20 @@ class RouterController:
         ).__dict__
 
     
+    def send_to_router_api(self, data: dict) -> dict:
+        r = requests.post(url=settings.ROUTER_URL, data=data)
+        print("data ", data)
+        print("Status Code:", r.status_code)
+        print("Response Text:", r.text)
+
+        # Print response body as JSON (if applicable)
+        try:
+            print("Response JSON:", r.json())
+        except ValueError:
+            print("Response is not JSON.")
+        if r.ok:
+            print(f"{r.text}")
+        else:
+            print(f"ERROR {r.text}")
+
+        return r.text

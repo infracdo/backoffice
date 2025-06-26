@@ -19,6 +19,7 @@ class Settings(BaseSettings):
     MANDRILL_EMAIL: str
 
     MACRODROID_URL: str
+    ROUTER_URL: str
 
     POSTGRES_SERVER: str
     POSTGRES_USER: str
