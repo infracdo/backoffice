@@ -390,7 +390,7 @@ class RouterController:
 
     
     def send_to_router_api(self, data: dict) -> dict:
-        r = requests.post(url=settings.ROUTER_URL, data=data)
+        r = requests.post(url=settings.ROUTER_URL, json=data)
         print("data ", data)
         print("Status Code:", r.status_code)
         print("Response Text:", r.text)
