@@ -21,7 +21,7 @@ class Router(Base):
     ip_address = Column(Text)
     password = Column(Text)
     qr_string = Column(Text)
-    data_usage = Column(Float)
+    data_usage = Column(Float, default=0)
     subscribers_count = Column(Integer, default=0)
     long = Column(Float)
     lat = Column(Float)

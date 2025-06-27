@@ -23,6 +23,7 @@ class UpdateUser(BaseModel):
     device_id: Optional[str] = None
     data_limit: Optional[float] = None
     data_usage: Optional[float] = None
+    data_left: Optional[float] = None
     tier: Optional[str] = None
 
 class CreateTier(BaseModel):

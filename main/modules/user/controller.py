@@ -253,7 +253,7 @@ class UserController:
 
         is_subscriber = payload["user_type"] == "subscriber"
         new_subscriber_tier = None
-        data_limit = None
+        data_limit = 0
 
         user_type = payload["user_type"]
         mobile_app_users = ["subscriber", "business_owner"]
