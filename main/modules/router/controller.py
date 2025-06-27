@@ -1,5 +1,5 @@
-import jwt
-import requests
+import asyncio
+import httpx
 from fastapi.encoders import jsonable_encoder
 from sqlalchemy.orm import Session
 from sqlalchemy import or_, cast, String
@@ -92,12 +92,11 @@ class RouterController:
             "router_id" : new_router.router_id
         } 
 
-        api_ret = self.send_to_router_api(data=router_data)
-        print("api_ret ", api_ret)
-
         db.add(new_router)
         db.commit()
         db.refresh(new_router)
+
+        self.send_to_router_api(data=router_data)
 
         return PostResponse(
             status="ok",
@@ -387,23 +386,15 @@ class RouterController:
             status="ok",
             status_code=200,
             message="Router and User successfully updated"
-        ).__dict__
+        ).__dict__xw
 
-    
-    def send_to_router_api(self, data: dict) -> dict:
-        r = requests.post(url=settings.ROUTER_URL, json=data)
-        print("data ", data)
-        print("Status Code:", r.status_code)
-        print("Response Text:", r.text)
 
-        # Print response body as JSON (if applicable)
-        try:
-            print("Response JSON:", r.json())
-        except ValueError:
-            print("Response is not JSON.")
-        if r.ok:
-            print(f"{r.text}")
-        else:
-            print(f"ERROR {r.text}")
-
-        return r.text
+    async def send_to_router_api(self, data: dict):
+        # fire_and_forget_async
+        async def _send():
+            try:
+                async with httpx.AsyncClient() as client:
+                    await client.post(url=settings.ROUTER_URL, json=data, timeout=1)
+            except Exception:
+                pass  # Don't crash if unreachable
+        asyncio.create_task(_send())
