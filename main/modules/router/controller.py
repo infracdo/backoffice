@@ -375,6 +375,7 @@ class RouterController:
             ).__dict__
 
         user.data_usage = payload["device_usage"]
+        user.data_left = payload["device_data_left"]
         user.updated_at = common.get_timestamp(1)
 
         db.commit()

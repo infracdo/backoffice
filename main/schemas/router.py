@@ -36,3 +36,4 @@ class UpdateRouterUsage(BaseModel):
     router_subscribers_count: int
     device_id:  str
     device_usage: float
+    device_data_left: float

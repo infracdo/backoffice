@@ -37,6 +37,7 @@ class User(Base):
     device_id = Column(Text)
     data_limit = Column(Float)
     data_usage = Column(Float)
+    data_left = Column(Float)
     tier = Column(Text)
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, index=True)
