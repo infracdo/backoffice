@@ -96,7 +96,7 @@ class RouterController:
         db.commit()
         db.refresh(new_router)
 
-        self.send_to_router_api(data=router_data)
+        asyncio.create_task(self.send_to_router_api(data=router_data))
 
         return PostResponse(
             status="ok",
@@ -388,13 +388,13 @@ class RouterController:
             message="Router and User successfully updated"
         ).__dict__xw
 
-
     async def send_to_router_api(self, data: dict):
-        # fire_and_forget_async
-        async def _send():
-            try:
-                async with httpx.AsyncClient() as client:
-                    await client.post(url=settings.ROUTER_URL, json=data, timeout=1)
-            except Exception:
-                pass  # Don't crash if unreachable
-        asyncio.create_task(_send())
+        try:
+            async with httpx.AsyncClient() as client:
+                res = await client.post(url=settings.ROUTER_URL, json=data, timeout=1)
+                print("send_to_router_api res:", res)
+                print("Status Code:", res.status_code)
+                print("Response Text:", res.text)
+        except Exception as e:
+            print("send_to_router_api error: ", e)
+            pass 
