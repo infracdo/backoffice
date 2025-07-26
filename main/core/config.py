@@ -14,6 +14,11 @@ class Settings(BaseSettings):
     SECRET: str
     JWT_ALGO: str
 
+    IBM_COS_API_KEY: str
+    IBM_COS_SERVICE_INSTANCE_ID: str
+    IBM_COS_BUSCKET_NAME: str
+    IBM_COS_REGION: str
+
     MANDRILL_API: str
     MANDRILL_NAME: str
     MANDRILL_EMAIL: str

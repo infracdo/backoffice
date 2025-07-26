@@ -5,6 +5,7 @@ from main.modules.auth import router as auth_router
 from main.modules.user import router as user_router
 from main.modules.router import router as router_router
 from main.modules.dashboard import router as dashboard_router
+from main.modules.promo import router as promo_router
 
 api_router = APIRouter()
 
@@ -36,4 +37,10 @@ api_router.include_router(
     dashboard_router.router,
     prefix="/dashboard",
     tags=["Dashboard Module"]
+)
+
+api_router.include_router(
+    promo_router.router,
+    prefix="/promo",
+    tags=["Promo Module"]
 )
