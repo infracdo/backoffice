@@ -13,6 +13,7 @@ class Promo(Base):
     promo_id = Column(Text, primary_key=True, index=True)
     image_url = Column(Text, nullable=False)
     link_url = Column(Text, nullable=False)
+    type = Column(Text, nullable=False)
     title = Column(Text)
     description = Column(Text)
     is_show = Column(Boolean, default=True)

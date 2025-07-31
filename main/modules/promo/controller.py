@@ -38,6 +38,7 @@ class PromoController:
             image_url=payload["image_url"],
             link_url=payload["link_url"],
             title=payload["title"],
+            type=payload["type"],
             description=payload.get("description"),
             is_show=payload["is_show"],
             promo_id=common.uuid_generator(),
@@ -106,6 +107,7 @@ class PromoController:
         self,
         db: Session,
         payload: dict,
+        type: Optional[str] = None,
         is_all: Optional[bool] = False,
         search: Optional[str] = None,
     ):
@@ -118,9 +120,12 @@ class PromoController:
             filters.append(models.Promo.promo_id == payload.get("id"))
         if is_all == False:
             filters.append(models.Promo.is_show == True)
+        if type:
+            filters.append(models.Promo.type == type)
         if search: 
             filters.append(
                 or_(
+                    models.Promo.type.ilike(f"%{search}%"),
                     models.Promo.title.ilike(f"%{search}%"),
                     models.Promo.description.ilike(f"%{search}%"),
                     models.Promo.image_url.ilike(f"%{search}%")
@@ -161,6 +166,7 @@ class PromoController:
         db: Session,
         filename: str,
         file_type: str,
+        type: Optional[str] = None,
         is_all: Optional[bool] = False,
         search: Optional[str] = None
     ):
@@ -169,9 +175,12 @@ class PromoController:
         ]
         if is_all == False:
             filters.append(models.Promo.is_show == True)
+        if type:
+            filters.append(models.Promo.type == type)
         if search: 
             filters.append(
                 or_(
+                    models.Promo.type.ilike(f"%{search}%"),
                     models.Promo.title.ilike(f"%{search}%"),
                     models.Promo.description.ilike(f"%{search}%"),
                     models.Promo.image_url.ilike(f"%{search}%")
@@ -189,6 +198,7 @@ class PromoController:
         keys = (
             "created_at",
             "updated_at",
+            "type",
             "title",
             "description",
             "image_url",
@@ -198,6 +208,7 @@ class PromoController:
         headers = (
             "Date Created",
             "Date Updated",
+            "Type",
             "Promo Title",
             "Description",
             "Image URL",

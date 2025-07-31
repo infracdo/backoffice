@@ -90,6 +90,7 @@ async def promo_list(
     *,
     _: Annotated[dict, Depends(jwt_required)],
     payload: GetPayload = Depends(), 
+    type: Annotated[str, Query()] = None,
     is_all: Annotated[bool, Query()] = False,
     search: Annotated[str, Query()] = None
 ) -> Any:
@@ -100,6 +101,7 @@ async def promo_list(
     return controller.promo_list(
         db=db,
         payload=payload.dict(exclude_none=True),
+        type=type,
         is_all=is_all,
         search=search
     )
@@ -111,6 +113,7 @@ async def download_promo_list(
     _: Annotated[dict, Depends(jwt_required)],
     filename: str,
     file_type: str,
+    type: Annotated[str, Query()] = None,
     is_all: Annotated[bool, Query()] = False,
     search: Annotated[str, Query()] = None,
     
@@ -123,6 +126,7 @@ async def download_promo_list(
         db=db,
         filename=filename,
         file_type=file_type,
+        type=type,
         is_all=is_all,
         search=search
     )
