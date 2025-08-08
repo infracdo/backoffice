@@ -209,7 +209,8 @@ async def check_by_mobile(
     db: Annotated[Session, Depends(deps.get_db)],
     *,
     _: Annotated[dict, Depends(jwt_required)],
-    mobile_no: str
+    mobile_no: str,
+    user_type: Annotated[str, Query()] = None,
 ) -> Any:
 
     """
@@ -217,5 +218,6 @@ async def check_by_mobile(
     """
     return controller.check_by_mobile(
         db=db,
-        mobile_no=mobile_no
+        mobile_no=mobile_no,
+        user_type=user_type
     )

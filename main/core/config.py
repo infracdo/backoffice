@@ -33,6 +33,9 @@ class Settings(BaseSettings):
     POSTGRES_PORT: str
     SQLALCHEMY_DATABASE_URI: Optional[PostgresDsn] = None
 
+    PAYCONNECT_BASEURL: str
+    PAYCONNECT_AUTH: str
+    
     @field_validator("SQLALCHEMY_DATABASE_URI", mode="before")
     def assemble_db_connection(cls, v: Optional[str], info: ValidationInfo) -> Any:
         if isinstance(v, str):

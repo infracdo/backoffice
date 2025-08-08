@@ -706,7 +706,8 @@ class UserController:
     def check_by_mobile(
         self,
         db: Session,
-        mobile_no: str
+        mobile_no: str,
+        user_type: Optional[str] = None,
     ):
 
         clean_num = common.normalize_ph_number(mobile_no)
@@ -717,12 +718,17 @@ class UserController:
                 message="Invalid Philippine number format.",
             ).__dict__
         mobile_no = f"+63{clean_num}"
+        filters = [
+            models.User.deleted_at == None,
+            models.User.mobile_no == mobile_no
+        ]
+        if user_type:
+            filters.append(models.User.user_type == user_type)
+        else:
+            filters.append(models.User.user_type == "subscriber")
         user = (
             db.query(models.User)
-            .filter(
-                models.User.deleted_at == None,
-                models.User.mobile_no == mobile_no
-            )
+            .filter(*filters)
             .one_or_none()
         )
         if not user:
