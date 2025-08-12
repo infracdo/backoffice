@@ -1,6 +1,29 @@
 version: "3.9"
 
 services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: zeep-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: zeepdb
+      POSTGRES_USER: zeepuser
+      POSTGRES_PASSWORD: zeeppassword123
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/pgdata
+      - ./docker/postgres/init:/docker-entrypoint-initdb.d
+      - ./zeep_backend_staging_bak.backup:/docker-entrypoint-initdb.d/zeep_backend_staging_bak.backup
+    ports:
+      - "5432:5432"
+    networks:
+      - portainer_default
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U zeepuser -d zeepdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   backend:
     build:
       context: .
@@ -11,5 +34,45 @@ services:
     volumes:
       - .:/app
     restart: unless-stopped
-    env_file:
-      - .env
+    environment:
+      # Database Configuration (for Docker setup)
+      POSTGRES_SERVER: postgres
+      POSTGRES_USER: zeepuser
+      POSTGRES_PASSWORD: zeeppassword123
+      POSTGRES_DB: zeepdb
+      POSTGRES_PORT: 5432
+      
+      # Application Configuration - Override in Portainer Environment Variables
+      SECRET: ${SECRET:-development-secret-change-in-production}
+      JWT_ALGO: ${JWT_ALGO:-HS256}
+      
+      # IBM Cloud Object Storage
+      IBM_COS_API_KEY: ${IBM_COS_API_KEY:-}
+      IBM_COS_SERVICE_INSTANCE_ID: ${IBM_COS_SERVICE_INSTANCE_ID:-}
+      IBM_COS_BUSCKET_NAME: ${IBM_COS_BUSCKET_NAME:-}
+      IBM_COS_REGION: ${IBM_COS_REGION:-us-south}
+      
+      # Email Service
+      MANDRILL_API: ${MANDRILL_API:-}
+      MANDRILL_NAME: ${MANDRILL_NAME:-Zeep Service}
+      MANDRILL_EMAIL: ${MANDRILL_EMAIL:-noreply@zeep.com}
+      
+      # External Services
+      MACRODROID_URL: ${MACRODROID_URL:-}
+      ROUTER_URL: ${ROUTER_URL:-}
+      
+      # Payment Service
+      PAYCONNECT_BASEURL: ${PAYCONNECT_BASEURL:-}
+      PAYCONNECT_AUTH: ${PAYCONNECT_AUTH:-}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - portainer_default
+
+volumes:
+  postgres_data:
+
+networks:
+  portainer_default:
+    external: true
