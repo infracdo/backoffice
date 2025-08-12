@@ -1,18 +1,25 @@
 FROM python:3.13-slim
 
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
 
-# Copy everything
+# Copy requirements and install dependencies
+COPY requirements.txt .
+RUN pip install --upgrade pip setuptools wheel && \
+    pip install --no-cache-dir -r requirements.txt
+
+# Copy application files
 COPY . .
 
-# Install dependencies
-RUN pip install --no-cache-dir -r requirements.txt
-
-# Set environment
+# Set environment variables
 ENV PYTHONPATH=/app
 ENV PYTHONUNBUFFERED=1
 
 EXPOSE 5050
 
-# Run diagnostic first, then try to start the app
-CMD ["sh", "-c", "echo 'Running diagnostics...' && python diagnose.py && echo 'Starting app...' && python app.py"]
+# Start the application directly
+CMD ["python", "app.py"]

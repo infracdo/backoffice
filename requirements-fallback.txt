@@ -1,0 +1,19 @@
+fastapi
+uvicorn
+gunicorn
+sqlalchemy
+psycopg2-binary
+pydantic
+pydantic-settings
+pydantic[email]
+PyJWT
+bcrypt
+mandrill
+openpyxl
+httpx
+python-multipart
+ibm-cos-sdk
+
+# Note: git+https://github.com/tontech/superlibrary.git@main
+# This dependency was temporarily commented out due to build issues
+# You may need to install this manually or ensure the repository is accessible
