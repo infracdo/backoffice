@@ -1,0 +1,135 @@
+#!/usr/bin/env python3
+"""
+Database initialization script for Zeep Backend
+This script creates all tables using SQLAlchemy models and inserts sample data
+"""
+
+import sys
+import os
+from datetime import datetime
+from sqlalchemy import create_engine, text
+from sqlalchemy.orm import sessionmaker
+
+# Add the project root to the Python path
+sys.path.append('/app')
+
+from main.core.config import settings
+from main.db.dbpostgres.baseclass import Base
+
+# Import all models to ensure they're registered with SQLAlchemy
+from main.models.user import User, UserRole, Tier
+from main.models.transaction import Transaction
+from main.models.otp import OTP
+from main.models.promo import Promo
+from main.models.router import Router
+from main.models.dashboard import Dashboard
+
+def create_tables():
+    """Create all database tables"""
+    print("Creating database tables...")
+    
+    engine = create_engine(str(settings.SQLALCHEMY_DATABASE_URI))
+    
+    try:
+        # Create all tables
+        Base.metadata.create_all(bind=engine)
+        print("✅ Tables created successfully!")
+        
+        # Create session
+        SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+        session = SessionLocal()
+        
+        try:
+            # Insert default user roles
+            print("Inserting default user roles...")
+            user_roles = [
+                UserRole(type='admin', description='Administrator with full access'),
+                UserRole(type='user', description='Regular user with limited access'),
+                UserRole(type='premium', description='Premium user with extended features')
+            ]
+            
+            for role in user_roles:
+                existing = session.query(UserRole).filter(UserRole.type == role.type).first()
+                if not existing:
+                    session.add(role)
+            
+            # Insert default tiers
+            print("Inserting default tiers...")
+            tiers = [
+                Tier(
+                    tier_id='basic',
+                    name='Basic Tier',
+                    description='Basic data plan with 1GB limit',
+                    data_limit=1024.0,
+                    is_default_tier=True,
+                    created_at=datetime.utcnow(),
+                    updated_at=datetime.utcnow()
+                ),
+                Tier(
+                    tier_id='premium',
+                    name='Premium Tier',
+                    description='Premium data plan with 5GB limit',
+                    data_limit=5120.0,
+                    is_default_tier=False,
+                    created_at=datetime.utcnow(),
+                    updated_at=datetime.utcnow()
+                ),
+                Tier(
+                    tier_id='unlimited',
+                    name='Unlimited Tier',
+                    description='Unlimited data plan',
+                    data_limit=-1.0,
+                    is_default_tier=False,
+                    created_at=datetime.utcnow(),
+                    updated_at=datetime.utcnow()
+                )
+            ]
+            
+            for tier in tiers:
+                existing = session.query(Tier).filter(Tier.tier_id == tier.tier_id).first()
+                if not existing:
+                    session.add(tier)
+            
+            # Insert sample admin user
+            print("Inserting sample admin user...")
+            admin_user = User(
+                user_id='admin_001',
+                user_type='admin',
+                name='System Administrator',
+                email='admin@zeep.com',
+                password='$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj6hsHuKY2zG',  # admin123
+                mobile_no='+1234567890',
+                data_limit=-1.0,
+                data_usage=0.0,
+                data_left=-1.0,
+                tier='unlimited',
+                is_active=True,
+                created_at=datetime.utcnow(),
+                updated_at=datetime.utcnow()
+            )
+            
+            existing_admin = session.query(User).filter(User.user_id == admin_user.user_id).first()
+            if not existing_admin:
+                session.add(admin_user)
+            
+            # Commit all changes
+            session.commit()
+            print("✅ Sample data inserted successfully!")
+            
+        except Exception as e:
+            session.rollback()
+            print(f"❌ Error inserting sample data: {e}")
+            raise
+        finally:
+            session.close()
+            
+    except Exception as e:
+        print(f"❌ Error creating tables: {e}")
+        raise
+    finally:
+        engine.dispose()
+
+if __name__ == "__main__":
+    print("🚀 Starting database initialization...")
+    create_tables()
+    print("✅ Database initialization completed!")

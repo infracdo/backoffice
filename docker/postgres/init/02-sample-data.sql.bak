@@ -1,0 +1,45 @@
+-- Sample data initialization script
+-- This script inserts default/sample data into the database
+-- Note: This will run after the application creates the tables
+
+-- Wait for tables to be created by the application
+-- You may need to run this separately after the application starts
+
+-- Insert default user roles
+INSERT INTO "UserRoles" (type, description) VALUES
+    ('admin', 'Administrator with full access'),
+    ('user', 'Regular user with limited access'),
+    ('premium', 'Premium user with extended features')
+ON CONFLICT (type) DO NOTHING;
+
+-- Insert default tiers
+INSERT INTO "Tiers" (tier_id, name, description, data_limit, is_default_tier, created_at, updated_at) VALUES
+    ('basic', 'Basic Tier', 'Basic data plan with 1GB limit', 1024.0, true, NOW(), NOW()),
+    ('premium', 'Premium Tier', 'Premium data plan with 5GB limit', 5120.0, false, NOW(), NOW()),
+    ('unlimited', 'Unlimited Tier', 'Unlimited data plan', -1.0, false, NOW(), NOW())
+ON CONFLICT (tier_id) DO NOTHING;
+
+-- Insert a sample admin user (password is hashed version of 'admin123')
+-- Note: You should change this password in production
+INSERT INTO "Users" (
+    user_id, user_type, name, email, password, mobile_no, 
+    data_limit, data_usage, data_left, tier, is_active, 
+    created_at, updated_at
+) VALUES (
+    'admin_001',
+    'admin',
+    'System Administrator',
+    'admin@zeep.com',
+    '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj6hsHuKY2zG', -- admin123
+    '+1234567890',
+    -1.0,
+    0.0,
+    -1.0,
+    'unlimited',
+    true,
+    NOW(),
+    NOW()
+) ON CONFLICT (user_id) DO NOTHING;
+
+-- Sample transaction statuses (if you have a status table)
+-- You can add more sample data as needed based on your application requirements
