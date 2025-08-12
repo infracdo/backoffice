@@ -31,8 +31,6 @@ services:
     container_name: zeep-backend
     ports:
       - "5050:5050"
-    volumes:
-      - .:/app
     restart: unless-stopped
     environment:
       # Database Configuration (for Docker setup)
