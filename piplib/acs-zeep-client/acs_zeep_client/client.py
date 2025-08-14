@@ -8,7 +8,7 @@ from typing import Optional
 from dotenv import load_dotenv
 from .auth import AuthManager
 from .exceptions import ConnectionError, AuthenticationError
-from .api import DevicesAPI, GroupsAPI, RadiusAPI, ZeepAPI, MonitoringAPI, TasksAPI, LogsAPI
+from .api import DevicesAPI, GroupsAPI, RadiusAPI, ZeepAPI, MonitoringAPI
 
 # Load environment variables from .env file
 load_dotenv(override=True)
@@ -45,15 +45,7 @@ class ACSZeepClient:
         realm = realm or os.getenv("KEYCLOAK_REALM")
         client_id = client_id or os.getenv("KEYCLOAK_CLIENT_ID")
         client_secret = client_secret or os.getenv("KEYCLOAK_CLIENT_SECRET")
-
-
-        # print the config here
-        print(f"ACS ZEEP Base URL: {self.base_url}")
-        print(f"Keycloak URL: {keycloak_url}")
-        print(f"Realm: {realm}")
-        print(f"Client ID: {client_id}")
-        print(f"Client Secret: {client_secret}")
-
+        
         if not all([keycloak_url, realm, client_id, client_secret]):
             raise ValueError(
                 "Missing required authentication parameters. Please provide keycloak_url, "
@@ -76,8 +68,6 @@ class ACSZeepClient:
         self.radius = RadiusAPI(self.http_client, self.base_url)
         self.zeep = ZeepAPI(self.http_client, self.base_url)
         self.monitoring = MonitoringAPI(self.http_client, self.base_url)
-        self.tasks = TasksAPI(self.http_client, self.base_url)
-        self.logs = LogsAPI(self.http_client, self.base_url)
         
         self._authenticated = False
     
