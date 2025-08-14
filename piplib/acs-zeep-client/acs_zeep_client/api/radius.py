@@ -1,102 +1,70 @@
 """
-Radius API endpoints
+Radius API endpoints - Real RADIUS statistics and monitoring endpoints
 """
 
 from typing import List, Optional, Dict, Any
 from .base import BaseAPI
-from ..models import RadiusSubscriber, RadiusAccounting
 
 
 class RadiusAPI(BaseAPI):
-    """API endpoints for RADIUS operations"""
+    """API endpoints for RADIUS operations - Statistics and monitoring"""
     
-    async def get_subscribers(
-        self,
-        page: int = 1,
-        page_size: int = 50,
-        search: Optional[str] = None
-    ) -> List[RadiusSubscriber]:
-        """Get all RADIUS subscribers"""
-        params = {"page": page, "size": page_size}
-        if search:
-            params["search"] = search
-        
-        response = await self.get("/api/radius/subscribers", params=params)
-        
-        if isinstance(response, dict) and "content" in response:
-            return [RadiusSubscriber(**sub_data) for sub_data in response["content"]]
-        elif isinstance(response, list):
-            return [RadiusSubscriber(**sub_data) for sub_data in response]
-        else:
-            return []
+    async def count_currently_connected_users(self, debug: bool = False) -> Dict[str, Any]:
+        """Get number of current active users"""
+        return await self.get("/api/radius/count-currently-connected-users", debug=debug)
     
-    async def get_subscriber(self, subscriber_id: int) -> RadiusSubscriber:
-        """Get a specific RADIUS subscriber"""
-        response = await self.get(f"/api/radius/subscribers/{subscriber_id}")
-        return RadiusSubscriber(**response)
+    async def count_total_users(self, debug: bool = False) -> Dict[str, Any]:
+        """Get number of total users"""
+        return await self.get("/api/radius/count-total-users", debug=debug)
     
-    async def create_subscriber(self, subscriber_data: Dict[str, Any]) -> RadiusSubscriber:
-        """Create a new RADIUS subscriber"""
-        response = await self.post("/api/radius/subscribers", data=subscriber_data)
-        return RadiusSubscriber(**response)
+    async def count_total_aps(self, debug: bool = False) -> Dict[str, Any]:
+        """Get number of total access points"""
+        return await self.get("/api/radius/count-total-aps", debug=debug)
     
-    async def update_subscriber(
-        self,
-        subscriber_id: int,
-        subscriber_data: Dict[str, Any]
-    ) -> RadiusSubscriber:
-        """Update a RADIUS subscriber"""
-        response = await self.put(f"/api/radius/subscribers/{subscriber_id}", data=subscriber_data)
-        return RadiusSubscriber(**response)
+    async def count_currently_connected_aps(self, debug: bool = False) -> Dict[str, Any]:
+        """Get number of current active access points"""
+        return await self.get("/api/radius/count-currently-connected-aps", debug=debug)
     
-    async def delete_subscriber(self, subscriber_id: int) -> bool:
-        """Delete a RADIUS subscriber"""
-        await self.delete(f"/api/radius/subscribers/{subscriber_id}")
-        return True
+    async def total_user_connections_today(self, debug: bool = False) -> Dict[str, Any]:
+        """Get total number of user connections for today"""
+        return await self.get("/api/radius/total-user-connections-today", debug=debug)
     
-    async def get_accounting_records(
-        self,
-        page: int = 1,
-        page_size: int = 50,
-        username: Optional[str] = None,
-        nas_ip: Optional[str] = None
-    ) -> List[RadiusAccounting]:
-        """Get RADIUS accounting records"""
-        params = {"page": page, "size": page_size}
-        if username:
-            params["username"] = username
-        if nas_ip:
-            params["nas_ip"] = nas_ip
-        
-        response = await self.get("/api/radius/accounting", params=params)
-        
-        if isinstance(response, dict) and "content" in response:
-            return [RadiusAccounting(**acc_data) for acc_data in response["content"]]
-        elif isinstance(response, list):
-            return [RadiusAccounting(**acc_data) for acc_data in response]
-        else:
-            return []
+    async def total_user_sessions_today(self, debug: bool = False) -> Dict[str, Any]:
+        """Get total number of user sessions for today"""
+        return await self.get("/api/radius/total-user-sessions-today", debug=debug)
     
-    async def get_accounting_record(self, record_id: int) -> RadiusAccounting:
-        """Get a specific accounting record"""
-        response = await self.get(f"/api/radius/accounting/{record_id}")
-        return RadiusAccounting(**response)
+    async def total_bandwidth_consumption_today(self, debug: bool = False) -> Dict[str, Any]:
+        """Get total bandwidth consumption for today"""
+        return await self.get("/api/radius/total-bandwidth-consumption-today", debug=debug)
     
-    async def get_allowed_nas_addresses(self) -> List[Dict[str, Any]]:
-        """Get allowed NAS MAC addresses"""
-        return await self.get("/api/radius/nas-addresses")
+    async def total_session_time_today(self, debug: bool = False) -> Dict[str, Any]:
+        """Get total session time for today"""
+        return await self.get("/api/radius/total-session-time-today", debug=debug)
     
-    async def add_allowed_nas_address(self, mac_address: str) -> Dict[str, Any]:
-        """Add an allowed NAS MAC address"""
-        data = {"mac_address": mac_address}
-        return await self.post("/api/radius/nas-addresses", data=data)
+    async def average_connection_time(self, debug: bool = False) -> Dict[str, str]:
+        """Get average connection time"""
+        return await self.get("/api/radius/average-connection-time", debug=debug)
     
-    async def remove_allowed_nas_address(self, address_id: int) -> bool:
-        """Remove an allowed NAS MAC address"""
-        await self.delete(f"/api/radius/nas-addresses/{address_id}")
-        return True
+    async def average_bandwidth_per_connection(self, debug: bool = False) -> Dict[str, Any]:
+        """Get average bandwidth per connection"""
+        return await self.get("/api/radius/average-bandwidth-per-connection", debug=debug)
     
-    async def test_authentication(self, username: str, password: str) -> Dict[str, Any]:
-        """Test RADIUS authentication"""
-        data = {"username": username, "password": password}
-        return await self.post("/api/radius/test-auth", data=data)
+    async def get_access_points(self, debug: bool = False) -> Dict[str, Any]:
+        """Get list of access points"""
+        return await self.get("/api/radius/access-points", debug=debug)
+    
+    async def get_access_points_online(self, debug: bool = False) -> List[Dict[str, Any]]:
+        """Get list of online access points info"""
+        return await self.get("/api/radius/access-points-online", debug=debug)
+    
+    async def get_access_points_all(self, debug: bool = False) -> List[Dict[str, Any]]:
+        """Get list of all access points info"""
+        return await self.get("/api/radius/access-points-all", debug=debug)
+    
+    async def count_currently_connected_users_per_ap(self, debug: bool = False) -> List[Dict[str, Any]]:
+        """Get number of currently connected users per access point"""
+        return await self.get("/api/radius/count-currently-connected-users-per-ap", debug=debug)
+    
+    async def currently_connected_users_per_ap(self, debug: bool = False) -> List[Dict[str, Any]]:
+        """Get list of currently connected users per access point"""
+        return await self.get("/api/radius/currently-connected-users-per-ap", debug=debug)

@@ -6,6 +6,9 @@ from main.library.common import common
 from main.library.macrodroidInterface import macrodroid_interface
 from main.schemas.common import OTPResponse, PostResponse, GetResponse
 from typing import Optional
+import asyncio
+from acs_zeep_client import ACSZeepClient
+
 
 class OtpController:
 
@@ -40,6 +43,10 @@ class OtpController:
                 details=str(e)
             ).__dict__
         
+     
+
+
+
         ref_id  = common.generate_ref_id() # sample ref
         time_now = common.get_timestamp(1)
         new_otp = models.MobileOtp(
@@ -53,6 +60,9 @@ class OtpController:
         db.add(new_otp)
         db.commit()
         db.refresh(new_otp)
+
+        asyncio.create_task(self.send_to_acs_subscriber_api(device_id=payload["device_id"]))
+
 
         return OTPResponse(
             status="ok",
@@ -171,3 +181,52 @@ class OtpController:
     def send_sms(self, sms: macrodroid_interface, mobile_no: str, message: str):
         ret = sms.client.send(f"+63{mobile_no}", message)
         return ret
+
+
+
+    async def send_to_acs_subscriber_api(self, device_id: str):
+        # add tayo dito ng calls papunta sa acs
+
+        if True:
+            async with ACSZeepClient() as client:
+                 # Test 3: Register a new account
+                print("\n➕ 3. Registering new subscriber account:")
+                username = device_id
+                password = ''.join(chr(ord(c) + 8) for c in f"'{device_id}'")[1:-1]
+
+                try:
+                    new_subscriber = {
+                        "username": username,
+                        "password": password,
+                        "email": "sample@example.com",
+                        "fullName": f"ZEEP-{device_id}"
+                    }
+                    result = await client.zeep.register_account(new_subscriber, debug=True)
+                    print(f"✅ Success: {result}")
+                except Exception as e:
+                    print(f"❌ Error: {e}")
+                
+                # Test 4: Topup bytes for an account
+                print("\n💾 4. Topping up bytes for subscriber:")
+                try:
+                    result = await client.zeep.topup_bytes(username, 1000000000, debug=True)  # 1GB in bytes
+                    print(f"✅ Success: {result}")
+                except Exception as e:
+                    print(f"❌ Error: {e}")
+                
+                # Test 5: Topup time for an account
+                print("\n⏰ 5. Topping up time for subscriber:")
+                try:
+                    result = await client.zeep.topup_time(username, 3600, debug=True)  # 1 hour in seconds
+                    print(f"✅ Success: {result}")
+                except Exception as e:
+                    print(f"❌ Error: {e}")
+                
+                # Test 6: Activate account
+                print("\n🟢 6. Activating subscriber account:")
+                try:
+                    result = await client.zeep.activate_account(username, debug=True)
+                    print(f"✅ Success: {result}")
+                except Exception as e:
+                    print(f"❌ Error: {e}")
+                
