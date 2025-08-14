@@ -45,7 +45,15 @@ class ACSZeepClient:
         realm = realm or os.getenv("KEYCLOAK_REALM")
         client_id = client_id or os.getenv("KEYCLOAK_CLIENT_ID")
         client_secret = client_secret or os.getenv("KEYCLOAK_CLIENT_SECRET")
-        
+
+
+        # print the config here
+        print(f"ACS ZEEP Base URL: {self.base_url}")
+        print(f"Keycloak URL: {keycloak_url}")
+        print(f"Realm: {realm}")
+        print(f"Client ID: {client_id}")
+        print(f"Client Secret: {client_secret}")
+
         if not all([keycloak_url, realm, client_id, client_secret]):
             raise ValueError(
                 "Missing required authentication parameters. Please provide keycloak_url, "
