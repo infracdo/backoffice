@@ -63,9 +63,11 @@ def zeep_decode(encoded_str, key):
 # Test the functions
 if __name__ == "__main__":
     # Test with your example
-    original = "'d52f1f5ac88cb108'"
+    original = "d52f1f5ac88cb108"
     key = 8
     
+    password = ''.join(chr(ord(c) + 8) for c in f"'{original}'")[1:-1]
+    print(">>>>> ", password)
     zeep_encoded = zeep_encode(original, key)
     print(f"Original: {original}")
     print(f"Encoded:  {zeep_encoded}")  # Should output: n9n=ik@@kj98
