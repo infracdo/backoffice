@@ -9,6 +9,7 @@ from main.schemas.common import PostResponse, GetResponse
 from main.core.config import settings
 from typing import Optional
 from main.library.payconnectInterface import payconnect_interface
+from acs_zeep_client import ACSZeepClient
 
 
 class TransactionController:
@@ -87,22 +88,8 @@ class TransactionController:
                 "errorCode":"0000",
                 "errorDescription":"success"
             }
-        transaction = (
-            db.query(models.Transaction)
-            .filter_by(transaction_id=payload.chargeReference)
-            .one_or_none()
-        )
-        if not transaction:
-            return retval
-        else:
-            transaction.updated_at= common.get_timestamp(1)
-            transaction.status = "paid"
-            transaction.charge_reference = payload.chargeReference
-            transaction.retrieval_reference = payload.retrievalReference
-            # transaction.amount = payload.amount
-            transaction.retrieval_timestamp = payload.timestamp
-            db.add(transaction)
-            db.commit()
+        
+        asyncio.create_task(self.acs_and_transaction_update(db, payload))
         
         return retval
     
@@ -256,3 +243,53 @@ class TransactionController:
             file_type=file_type,
             data=data,
         )
+    
+
+    async def acs_and_transaction_update(self, db: Session, webhook_data: dict):
+
+        if True:
+            transaction = (
+                db.query(models.Transaction)
+                .filter_by(transaction_id=webhook_data.chargeReference)
+                .one_or_none()
+            )
+            if transaction:
+                time_now = common.get_timestamp(1)
+                # update transaction
+                transaction.updated_at = time_now
+                transaction.status = "paid"
+                transaction.charge_reference = webhook_data.chargeReference
+                transaction.retrieval_reference = webhook_data.retrievalReference
+                # transaction.amount = payload.amount
+                transaction.retrieval_timestamp = webhook_data.timestamp
+                db.add(transaction)
+                db.commit()
+
+                # get device id
+                user_id = transaction.user_id
+                user = (
+                    db.query(models.User)
+                    .filter_by(user_id=user_id)
+                    .one_or_none()
+                )
+                if user:
+                    username = user.device_id
+                    async with ACSZeepClient() as client:
+                        # Topup bytes for an account
+                        print("Topping up bytes for subscriber:")
+                        try:
+                            bytes_result = await client.zeep.topup_bytes(username, 1000000000, debug=True)  # 1GB in bytes
+                            print(f"✅ Success: {bytes_result}")
+                        except Exception as e:
+                            print(f"❌ Error: {e}")
+                        
+                        # Topup time for an account
+                        print("Topping up time for subscriber:")
+                        try:
+                            seconds_left = common.get_time_left_til_midnight()
+                            print("seconds_left ", seconds_left)
+                            time_result = await client.zeep.topup_time(username, seconds_left, debug=True)  # in seconds
+                            print(f"✅ Success: {time_result}")
+                        except Exception as e:
+                            print(f"❌ Error: {e}")
+        

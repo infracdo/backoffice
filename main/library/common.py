@@ -377,6 +377,12 @@ class Common:
 
     def small_letter_no_space(self, orig: str):
         return re.sub(r"\s+", "", orig.lower())
+    
 
+    def get_time_left_til_midnight(self):
+        now = datetime.now()
+        midnight = (now + td(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
+        seconds_diff = int((midnight - now).total_seconds())
+        return seconds_diff
 
 common = Common()
