@@ -211,6 +211,7 @@ async def check_by_mobile(
     _: Annotated[dict, Depends(jwt_required)],
     mobile_no: str,
     user_type: Annotated[str, Query()] = None,
+    will_return_token: Annotated[bool, Query()] = False
 ) -> Any:
 
     """
@@ -219,5 +220,6 @@ async def check_by_mobile(
     return controller.check_by_mobile(
         db=db,
         mobile_no=mobile_no,
-        user_type=user_type
+        user_type=user_type,
+        will_return_token=will_return_token
     )

@@ -708,6 +708,7 @@ class UserController:
         db: Session,
         mobile_no: str,
         user_type: Optional[str] = None,
+        will_return_token: Optional[bool] = False
     ):
 
         clean_num = common.normalize_ph_number(mobile_no)
@@ -717,31 +718,43 @@ class UserController:
                 status_code=400,
                 message="Invalid Philippine number format.",
             ).__dict__
+        
         mobile_no = f"+63{clean_num}"
         filters = [
             models.User.deleted_at == None,
             models.User.mobile_no == mobile_no
         ]
+        
         if user_type:
             filters.append(models.User.user_type == user_type)
         else:
             filters.append(models.User.user_type == "subscriber")
+        
         user = (
             db.query(models.User)
             .filter(*filters)
             .one_or_none()
         )
+        
         if not user:
             return PostResponse(
                 status="error",
                 status_code=400,
                 message="User not found"
             ).__dict__
-
         else:
+            ret = {}
+            if will_return_token:
+                token = common.generate_jwt(jsonable_encoder(user))
+                ret["access_token"] = token       
+                user.last_login = common.get_timestamp(1)
+                db.commit()
+                db.refresh(user)
+            ret["user"] = jsonable_encoder(user)
+
             return PostResponse(
                 status="ok",
                 status_code=200,
                 message="User found",
-                data=jsonable_encoder(user)
+                data=ret
             ).__dict__
