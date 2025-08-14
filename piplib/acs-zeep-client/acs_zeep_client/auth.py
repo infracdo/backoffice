@@ -25,7 +25,11 @@ class AuthManager:
         self.client_secret = client_secret
         self.token_data: Optional[TokenResponse] = None
         self.token_expires_at: Optional[datetime] = None
-    
+        print(f"Keycloak URL: {self.keycloak_url}")
+        print(f"Realm: {self.realm}")
+        print(f"Client ID: {self.client_id}")
+        print(f"Client Secret: {self.client_secret}")
+
     @property
     def token_url(self) -> str:
         """Get the token endpoint URL"""
