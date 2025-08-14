@@ -17,7 +17,7 @@ controller = TransactionController()
 async def create_payment_transaction(
     db: Annotated[Session, Depends(deps.get_db)],
     *,
-    _: Annotated[dict, Depends(jwt_required)],
+    current_user: Annotated[dict, Depends(jwt_required)],
     payload: CreatePaymentTransaction
 ) -> Any:
     """
@@ -25,6 +25,7 @@ async def create_payment_transaction(
     """
     return await controller.create_payment_transaction(
         db=db,
+        current_user=current_user,
         payload=payload
     )
 
@@ -45,9 +46,10 @@ async def receive_webhook(
 async def payment_transaction_list(
     db: Annotated[Session, Depends(deps.get_db)],
     *,
-    _: Annotated[dict, Depends(jwt_required)],
+    current_user: Annotated[dict, Depends(jwt_required)],
     payload: GetPayload = Depends(),
-    search: Annotated[str, Query()] = None
+    search: Annotated[str, Query()] = None,
+    status: Annotated[str, Query()] = None,
 ) -> Any:
 
     """
@@ -55,8 +57,10 @@ async def payment_transaction_list(
     """
     return controller.payment_transaction_list(
         db=db,
+        current_user=current_user,
         payload=payload.dict(exclude_none=True),
-        search=search
+        search=search,
+        status=status
     )
 
 @router.get('/list/download')
@@ -67,7 +71,7 @@ async def download_payment_transaction_list(
     filename: str,
     file_type: str,
     search: Annotated[str, Query()] = None,
-    
+    status: Annotated[str, Query()] = None
 ) -> Any:
 
     """
@@ -77,5 +81,6 @@ async def download_payment_transaction_list(
         db=db,
         filename=filename,
         file_type=file_type,
-        search=search
+        search=search,
+        status=status
     )

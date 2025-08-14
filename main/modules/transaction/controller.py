@@ -16,6 +16,7 @@ class TransactionController:
     async def create_payment_transaction(
         self,
         db: Session,
+        current_user: dict,
         payload: dict
     ):
 
@@ -34,6 +35,7 @@ class TransactionController:
                     payment_method=payload.payment_method,
                     amount=payload.amount,
                     qr_code_string=result.get("rawQrString"),
+                    user_id=current_user.get("user_id"),
                     transaction_id=transaction_id,
                     created_at=time_now,
                     updated_at=time_now
@@ -54,7 +56,6 @@ class TransactionController:
                     }
                 ).__dict__
             else:
-                print(">>>>>>>>>>GET QR NO RESULT")
                 return PostResponse(
                     status="error",
                     status_code=500,
@@ -62,7 +63,6 @@ class TransactionController:
                     details="Failed to generate QR"
                 ).__dict__
         except Exception as e:
-            print(">>>>>>>GET QR: ERROR:", e)
             return PostResponse(
                 status="error",
                 status_code=500,
@@ -110,15 +110,22 @@ class TransactionController:
     def payment_transaction_list(
         self,
         db: Session,
+        current_user: dict,
         payload: dict,
-        search: Optional[str] = None
+        search: Optional[str] = None,
+        status: Optional[str] = None
     ):
         limit = payload.get("limit",9999999)
         page = payload.get("page",1)
 
+        user_id = ""
+        if current_user.get("user_id") and \
+              current_user.get("user_type") not in ["admin","support"]:
+            user_id = current_user.get("user_id")
+
         filters = []
         if payload.get("id"):
-            filters.append(models.MobileOtp.otp_id == payload.get("id"))
+            filters.append(models.Transaction.transaction_id == payload.get("id"))
         
         if search: 
             filters.append(
@@ -130,6 +137,13 @@ class TransactionController:
                     cast(models.Transaction.amount, String).ilike(search)
                 )
             )
+        
+        if status:
+            filters.append(models.Transaction.status == status)
+
+        if user_id:
+            filters.append(models.Transaction.user_id == user_id)
+
 
         # get total rows count
         data = db.query(models.Transaction).filter(*filters)
@@ -139,20 +153,29 @@ class TransactionController:
         page = int(page) if page else 0
         offset = (page - 1) * limit if limit and page else None
 
-        otps = (
-            db.query(
-                models.Transaction
-            )
+        transactions = (
+            db.query(models.Transaction, models.User.name)
+            .join(models.User, models.Transaction.user_id == models.User.user_id)
             .filter(*filters)
+            .order_by(models.Transaction.updated_at.desc())
             .limit(limit)
             .offset(offset)
             .all()
         )
 
+        trans_list = []
+        for trans, name in transactions:
+            print(name)
+            trans_dict = trans.__dict__.copy()
+            trans_dict["name"] = name
+            trans_dict.pop("_sa_instance_state", None)
+            trans_list.append(trans_dict)
+
+
         return GetResponse(
             status="ok",
             status_code=200,
-            data=jsonable_encoder(otps),
+            data=jsonable_encoder(trans_list),
             total_rows=total_rows
         )
 
@@ -162,7 +185,8 @@ class TransactionController:
         db: Session,
         filename: str,
         file_type: str,
-        search: Optional[str] = None
+        search: Optional[str] = None,
+        status: Optional[str] = None
     ):
     
         filters = []
@@ -178,15 +202,27 @@ class TransactionController:
                 )
             )
 
-        otps = (
-            db.query(
-                models.Transaction
-            )
+        if status:
+            filters.append(models.Transaction.status == status)
+
+        transactions = (
+            db.query(models.Transaction, models.User.name)
+            .join(models.User, models.Transaction.user_id == models.User.user_id)
             .filter(*filters)
+            .order_by(models.Transaction.updated_at.desc())
             .all()
         )
+
+        trans_list = []
+        for trans, name in transactions:
+            trans_dict = trans.__dict__.copy()
+            trans_dict["name"] = name
+            trans_dict.pop("_sa_instance_state", None)
+            trans_list.append(trans_dict)
+
         keys = (
             "created_at",
+            "updated_at",
             "type",
             "status",
             "payment_method",
@@ -197,7 +233,8 @@ class TransactionController:
             "qr_code_string"
         )
         headers = (
-            "Date",
+            "Transaction Date",
+            "Last Updated",
             "Type",
             "Status",
             "Payment Method",
@@ -211,7 +248,7 @@ class TransactionController:
         raw_data = {
             "header": keys,
             "headers": headers,
-            "rows": jsonable_encoder(otps)
+            "rows": jsonable_encoder(trans_list)
         }
         data = common.format_excel(rawData=raw_data)
         return common.get_media_return(

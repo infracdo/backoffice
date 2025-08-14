@@ -20,6 +20,7 @@ class Transaction(Base):
     charge_reference = Column(Text)
     retrieval_reference = Column(Text)
     retrieval_timestamp = Column(Text)
+    user_id = Column(Text)
     created_at = Column(DateTime, index=True)
     updated_at = Column(DateTime, index=True)
     deleted_at = Column(DateTime, index=True)
