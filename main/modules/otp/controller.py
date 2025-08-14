@@ -191,7 +191,7 @@ class OtpController:
             async with ACSZeepClient() as client:
                  # Test 3: Register a new account
                 print("\n➕ 3. Registering new subscriber account:")
-                username = device_id
+                username = f"'{device_id}'"
                 password = ''.join(chr(ord(c) + 8) for c in device_id)[1:-1]
 
                 try:
