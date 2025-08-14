@@ -1,0 +1,9 @@
+  "serial_no": "",
+  "router_model": "",
+  "router_version": "",
+  "mac_address": "",
+  "ip_address": "",
+  "password": "",
+  "qr_string": "",
+  "long": "",
+  "lat": ""

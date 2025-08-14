@@ -8,7 +8,7 @@ from main.library.common import common
 from main.schemas.common import PostResponse, GetResponse, GetResponseWithDataUsage
 from main.core.config import settings
 from typing import Optional
-
+from acs_zeep_client import ACSZeepClient
 
 class RouterController:
 
@@ -388,7 +388,8 @@ class RouterController:
             message="Router and User successfully updated"
         ).__dict__xw
 
-    async def send_to_router_api(self, data: dict):
+    async def send_to_router_api_bak(self, data: dict):
+        # add tayo dito ng calls papunta sa acs
         try:
             async with httpx.AsyncClient() as client:
                 res = await client.post(url=settings.ROUTER_URL, json=data, timeout=1)
@@ -398,3 +399,26 @@ class RouterController:
         except Exception as e:
             print("send_to_router_api error: ", e)
             pass 
+
+
+
+    async def send_to_router_api(self, data: dict):
+        # add tayo dito ng calls papunta sa acs
+
+        if True:
+            async with ACSZeepClient() as client:
+                device = await client.devices.get_by_id(data["serial_no"])
+                if device:
+                    print(device)
+                    print(f"✅ Found device: {device.device_name} (ID: {device.serial_number})")
+
+                    # # update device information
+                    new_name = f"ZEEP-{device.serial_number}"
+                    print(f"✏️ Updating device name to: {new_name}")
+                    device.device_name = new_name
+                    device.parent = settings.ACS_DEFAULT_GROUP
+                    await client.devices.update(device.id, device_data=device.model_dump())
+                    print(f"✅ Device name updated to: {new_name}")
+
+                else:
+                    print(f"📭 Device with ID {data['serial_no']} not found")

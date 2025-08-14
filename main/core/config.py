@@ -35,6 +35,7 @@ class Settings(BaseSettings):
 
     PAYCONNECT_BASEURL: str
     PAYCONNECT_AUTH: str
+    ACS_DEFAULT_GROUP: str
     
     @field_validator("SQLALCHEMY_DATABASE_URI", mode="before")
     def assemble_db_connection(cls, v: Optional[str], info: ValidationInfo) -> Any:
@@ -52,6 +53,7 @@ class Settings(BaseSettings):
         "env_file": ".env",
         "env_file_encoding": "utf-8",
         "case_sensitive": True,
+        "extra": "ignore",  # Allow extra fields in .env file
     }
 
 settings = Settings()
