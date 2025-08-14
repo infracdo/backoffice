@@ -13,4 +13,4 @@ openpyxl
 httpx
 python-multipart
 ibm-cos-sdk
-git+https://mcandres:ndB4CNBAxvuAs6mGy28x@gitlabv3.thousandminds.com/zeep-apollo/fastapi-lib/acs-zeep-client.git@master
+./piplib/acs-zeep-client
