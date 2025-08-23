@@ -9,6 +9,7 @@ WORKDIR /app
 
 # Copy requirements and piplib directory for local package
 COPY requirements.txt .
+COPY app.py .
 COPY piplib/ ./piplib/
 RUN pip install --upgrade pip setuptools wheel && \
     pip install --no-cache-dir -r requirements.txt
