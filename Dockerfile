@@ -24,4 +24,4 @@ ENV PYTHONUNBUFFERED=1
 EXPOSE 5050
 
 # Start the application directly
-CMD ["python", "app.py"]
+CMD ["python", "/app/app.py"]
