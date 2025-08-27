@@ -419,6 +419,9 @@ class RouterController:
                     device.parent = settings.ACS_DEFAULT_GROUP
                     await client.devices.update(device.id, device_data=device.model_dump())
                     print(f"✅ Device name updated to: {new_name}")
+                    print(f"✅ moveDevice: {device.serial_number}")
+                    await client.devices.moveDevice(device.serial_number)
+                    print(f"✅ Device {device.serial_number} moved.")
 
                 else:
                     print(f"📭 Device with ID {data['serial_no']} not found")
