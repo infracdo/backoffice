@@ -51,6 +51,12 @@ class DevicesAPI(BaseAPI):
         """Update an existing device"""
         response = await self.put(f"/updatedevice/{device_id}", data=device_data)
         return Device(**response)
+
+    async def moveDevice(self, device_serial: str) -> Device:
+        """Move an existing device"""
+        response = await self.get(f"/MoveDeviceGroup/{device_serial}")
+        return Device(**response)
+    
     
     async def delete(self, device_id: str) -> bool:
         """Delete a device"""
