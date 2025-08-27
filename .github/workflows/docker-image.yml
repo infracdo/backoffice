@@ -27,10 +27,10 @@ jobs:
         run: 
           # docker build --target build -t my-image:build .
 
-          docker build -t backoffice-be:prod .
+          docker build -t backoffice-be:sbx .
 
       # Step 4: Push the Docker image
       - name: Push Docker Image
         run: |
-          docker tag backoffice-be:prod infracdo/backoffice-be:prod
-          docker push infracdo/backoffice-be:prod
+          docker tag backoffice-be:sbx infracdo/backoffice-be:sbx
+          docker push infracdo/backoffice-be:sbx
