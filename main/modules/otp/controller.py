@@ -61,8 +61,14 @@ class OtpController:
         db.commit()
         db.refresh(new_otp)
 
-        asyncio.create_task(self.send_to_acs_subscriber_api(device_id=payload["device_id"]))
-
+        # register subscriber if device_id is less than 32 chars        
+        if len(payload["device_id"]) < 32:
+            asyncio.create_task(self.register_subscriber(
+                username=payload["mobile_no"],
+                password=payload["device_id"],
+                email=payload["email"],
+                fullName=payload["name"]
+            ))
 
         return OTPResponse(
             status="ok",
