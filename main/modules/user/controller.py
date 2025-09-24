@@ -260,7 +260,8 @@ class UserController:
             async with ACSZeepClient() as client:
                  # Test 3: Register a new account
                 print("\n➕ 3. Registering new subscriber account:")
-              
+                username = username.replace("+63","0")
+
                 try:
                     new_subscriber = {
                         "username": username,
