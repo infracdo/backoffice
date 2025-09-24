@@ -7,6 +7,8 @@ from main.library.common import common
 from main.schemas.common import PostResponse, GetResponse
 from typing import Optional
 from collections import defaultdict
+import asyncio
+from acs_zeep_client import ACSZeepClient
 
 class UserController:
 
@@ -244,6 +246,58 @@ class UserController:
             message="Tier successfully deleted"
         ).__dict__
    
+
+
+
+    async def register_subscriber(self, 
+                                username: str,
+                                password: str,
+                                email: str,
+                                fullName: str):
+        # add tayo dito ng calls papunta sa acs
+
+        if True:
+            async with ACSZeepClient() as client:
+                 # Test 3: Register a new account
+                print("\n➕ 3. Registering new subscriber account:")
+              
+                try:
+                    new_subscriber = {
+                        "username": username,
+                        "password": password,
+                        "email": email,
+                        "fullName": fullName,
+                    }
+                    result = await client.zeep.register_account(new_subscriber, debug=True)
+                    print(f"✅ Success: {result}")
+                except Exception as e:
+                    print(f"❌ Error: {e}")
+                
+                # Test 4: Topup bytes for an account
+                print("\n💾 4. Topping up bytes for subscriber:")
+                try:
+                    result = await client.zeep.topup_bytes(username, 5000000000, debug=True)  # 1GB in bytes
+                    print(f"✅ Success: {result}")
+                except Exception as e:
+                    print(f"❌ Error: {e}")
+                
+                # Test 5: Topup time for an account
+                print("\n⏰ 5. Topping up time for subscriber:")
+                try:
+                    result = await client.zeep.topup_time(username, 3600, debug=True)  # 1 hour in seconds
+                    print(f"✅ Success: {result}")
+                except Exception as e:
+                    print(f"❌ Error: {e}")
+                
+                # Test 6: Activate account
+                print("\n🟢 6. Activating subscriber account:")
+                try:
+                    result = await client.zeep.activate_account(username, debug=True)
+                    print(f"✅ Success: {result}")
+                except Exception as e:
+                    print(f"❌ Error: {e}")
+                
+
    
     def create_user(
         self,
@@ -367,6 +421,13 @@ class UserController:
         db.add(new_user)
         db.commit()
         db.refresh(new_user)
+
+        # add subscriber data also here
+        asyncio.create_task(self.register_subscriber( username=mobile_no,
+                                password=payload["password"],
+                                email=payload["email"],
+                                fullName=payload["name"]))
+
 
         data = {
             "user": jsonable_encoder(new_user)
