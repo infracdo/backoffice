@@ -277,7 +277,7 @@ class UserController:
                 # Test 4: Topup bytes for an account
                 print("\n💾 4. Topping up bytes for subscriber:")
                 try:
-                    result = await client.zeep.topup_bytes(username, 5000000000, debug=True)  # 1GB in bytes
+                    result = await client.zeep.topup_bytes(username, 1000000000, debug=True)  # 1GB in bytes
                     print(f"✅ Success: {result}")
                 except Exception as e:
                     print(f"❌ Error: {e}")
